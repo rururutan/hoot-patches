@@ -27,3 +27,16 @@
 *.exe
 *.out
 *.app
+
+# Work data
+dis/
+dump/
+data/
+*.lst
+*.*~
+*.d88
+*.d77
+*.dsk
+*.rom
+*.bin
+patch
