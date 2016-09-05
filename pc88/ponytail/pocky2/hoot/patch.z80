@@ -1,0 +1,52 @@
+; Pocky2 用
+; メインルーチン
+
+	cseg
+	org	0000h
+
+stack:	equ	09000h		; スタックエリア
+mdata:	equ	04600h		; 曲データアドレス
+
+; メインループ
+
+main:
+	di
+	im	2
+	ld	sp,stack
+
+	ld	a,0F3h
+	ld	i,a
+
+	xor	a
+	ld	(04192h), a	; 変なポート叩く対策
+	ld	(04193h), a
+
+loop:
+	in	a,(00h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+;	call	03003h		; 演奏停止
+
+	di
+	in	a,(01h)
+	out	(01h),a		; 曲データを読み込む
+
+	ld	hl, 04600h
+	call	0300Fh
+	call	03000h
+	ei
+	jr	loop
+
+stop:
+	di
+	call	03006h		; 演奏停止
+	ei
+
+	xor	a		; 停止処理
+	out	(00h),a
+	jr	loop
