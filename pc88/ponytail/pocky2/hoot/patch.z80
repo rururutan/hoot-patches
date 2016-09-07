@@ -1,5 +1,8 @@
-; Pocky2 用
-; メインルーチン
+;
+; POCKY2 for PC-88 用 hoot用演奏ルーチン
+; (C) RuRuRu
+; 2012/10/05 1st Release
+;
 
 	cseg
 	org	0000h

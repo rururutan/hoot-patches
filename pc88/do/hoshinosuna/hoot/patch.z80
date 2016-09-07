@@ -1,5 +1,8 @@
-; 星の砂物語 for PC-88 用
-; メインルーチン
+;
+; 星の砂物語 for PC-88 用 hoot用演奏ルーチン
+; (C) RuRuRu
+; 2011/02/22 1st Release
+;
 
 	cseg
 	org	0000h
