@@ -1,0 +1,46 @@
+;
+; 世界でいちばん君がすき! for PC-88 用 hoot用演奏ルーチン
+; (C) RuRuRu
+; 2009/10/25 1st Release
+;
+
+	cseg
+	org	0000h
+
+stack:	equ	00100h		; スタックエリア
+mdata:	equ	03000h		; 曲データアドレス(固定)
+
+; メインループ
+
+main:
+	di
+	im	2
+	ld	sp,stack
+
+	call	0f00h		; 割り込み初期化
+
+loop:
+	in	a,(00h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+	call	0f13h		; 演奏停止
+
+	in	a,(01h)
+	out	(01h),a		; 曲データを読み込む
+
+	ld	hl,mdata	; 曲データ設定
+	call	0f10h		; 演奏開始
+	ei
+	jr	loop
+
+stop:
+	xor	a		; 停止処理
+	out	(00h),a
+	call	0f13h		; 演奏停止
+	jr	loop
+

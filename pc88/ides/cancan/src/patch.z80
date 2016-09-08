@@ -1,0 +1,80 @@
+;
+; Can Can Bunny for PC-88 用 hoot用演奏ルーチン
+; (C) RuRuRu
+; 2012/04/09 1st Release
+;
+
+	cseg
+	org	0000h
+
+stack:	equ	083FFh		; スタックエリア
+mdata:	equ	06000h		; 曲データアドレス(固定)
+
+; メインループ
+
+main:
+	di
+	im	2
+	ld	sp,stack
+	call	init
+	ei
+loop:
+	in	a,(00h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+	call	02032h		; 演奏停止
+
+	in	a,(01h)
+	out	(01h),a		; 曲データを読み込む
+	call	02023h
+	jr	loop
+
+stop:
+	call	02032h		; 演奏停止
+	jr	loop
+
+init:
+	ld	a, 07h
+	out	(0E4h), a
+	ld	a, 02h
+	out	(0E6h), a
+
+	call	00100h		; init
+
+	ld	a, 0C9h
+	ld	(0934h), a
+	ld	(0DF9h), a
+
+	ld	hl, irq
+	ld	(02008h), hl
+	ret
+
+	; hootの都合で演奏が遅いので2回処理ルーチン呼ぶことで対処
+irq:
+	di
+	push	af
+	push	bc
+	push	de
+	push	hl
+	push	ix
+	push	iy
+
+	xor	a
+	out	(0E4h),a
+
+	call	0DFBh
+	call	0DFBh
+
+	pop	iy
+	pop	ix
+	pop	hl
+	pop	de
+	pop	bc
+	pop	af
+	ei
+	reti
