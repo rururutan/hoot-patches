@@ -1,0 +1,85 @@
+; R2 (c)Alice 用
+; MDMSX.BIN CRC32:72d4235D 版
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0c000h		; 曲データアドレス
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp, stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a, (02h)	; キー入力待ち
+	or	a
+	jr	z, loop
+
+	cp	01h
+	jr	nz, stop
+
+	ld	a, 0FFh
+	ld	(0D702h), a
+	halt
+
+	di
+	in	a, (03h)
+	out	(03h), a	; 曲データを読み込む
+	ei
+
+	ld	a, 01h
+	ld	(0D702h), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	jr	loop
+
+stop:
+	ld	a, 0FFh
+	ld	(0D702h), a
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h), a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 04000h
+	ld	(0FDA0h), hl
+
+	ld	hl, irq_end
+	ld	(0D704h), hl
+
+	ld	a, 0C3h		; DiskRead Skip
+	ld	(0408Eh), a
+	ld	hl, 040FFh
+	ld	(0408Fh), hl
+
+;	ld	a, 01h
+;	ld	(0426Dh), a
+
+irq:
+	di
+	ld	a,(0D737h)
+	inc	a
+	ld	(0D737h),a
+	cp	003h		; 速度調整
+	jr	nz,irq_end
+
+	xor	a
+	ld	(0D737H),a
+
+	call	04000h
+
+irq_end:
+	ret
