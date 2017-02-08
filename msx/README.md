@@ -1,14 +1,12 @@
-# hoot MSX”Ä—pƒhƒ‰ƒCƒod—l
+# MSXæ±ç”¨ãƒ‰ãƒ©ã‚¤ãƒä»•æ§˜
 
-##“Æ©IOƒ|[ƒg
+## ç‹¬è‡ªIOãƒãƒ¼ãƒˆ
 
-Port 02 ƒŠƒNƒGƒXƒg(00:none 01:stop 02:play)
-
-Port 03 ƒŠƒNƒGƒXƒgƒR[ƒh(00~07bit)
-Port 04 ƒŠƒNƒGƒXƒgƒR[ƒh(08~15bit)
-Port 05 ƒŠƒNƒGƒXƒgƒR[ƒh(16~23bit)
-Port 06 ƒŠƒNƒGƒXƒgƒR[ƒh(24~31bit)
-
-Port 07 ƒTƒ|[ƒg‰¹Œ¹(0bit:YM2413 1bit:MSX-Audio 2bit:YMF271B)
+* Port 02 ãƒªã‚¯ã‚¨ã‚¹ãƒˆ(00:none 01:stop 02:play)
+* Port 03 ãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚³ãƒ¼ãƒ‰(00~07bit)
+* Port 04 ãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚³ãƒ¼ãƒ‰(08~15bit)
+* Port 05 ãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚³ãƒ¼ãƒ‰(16~23bit)
+* Port 06 ãƒªã‚¯ã‚¨ã‚¹ãƒˆã‚³ãƒ¼ãƒ‰(24~31bit)
+* Port 07 ã‚µãƒãƒ¼ãƒˆéŸ³æº(0bit:YM2413 1bit:MSX-Audio 2bit:YMF271B)
 
 
