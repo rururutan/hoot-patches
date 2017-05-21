@@ -1,0 +1,199 @@
+; ACTMAN (c)ASCII 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f000h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	ld	a,(flg_loop)
+	cp	1
+	jr	nz,stat_chk
+
+	ld	hl,0BED2H
+	call	0BD2AH
+
+stat_chk:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	bit	0,a
+	call	nz,play_stop
+
+	in	a,(04h)
+	bit	1,a
+	jr	z,play_start
+
+	ld	a,1
+	ld	(flg_loop),a
+
+play_start:
+	di
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	b, a
+	add	a, a		; x4
+	add	a, b		; x6
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	a,d
+	cp	00h
+	jr	z,ch_2
+
+	push	hl
+	ex	de,hl
+	call	0BD25h
+	pop	hl
+
+ch_2:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	a,d
+	cp	00h
+	jr	z,ch_3
+
+	push	hl
+	ex	de,hl
+	call	0BD2Ah
+	pop	hl
+
+ch_3:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ld	a,d
+	cp	00h
+	jr	z,ch_end
+
+	ex	de,hl
+	call	0BD2Fh
+
+ch_end:
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	xor	a
+	ld	(flg_loop),a
+	call	0BD07h
+	ret
+
+init:
+	ld	a, 0C3h
+	ld	hl,0BC55h
+	ld	(0FD9Fh),a
+	ld	(0FDA0h),hl
+
+	call	0BCF7h
+	call	0BD07h
+	ret
+
+mustbl:
+	dw	0BD6FH
+	dw	0000h
+	dw	0000h
+
+	dw	0BEBEH
+	dw	0BEC8H
+	dw	0000h
+
+	dw	0BEAAH
+	dw	0BEB4H
+	dw	0000h
+
+	dw	0BDB2H
+	dw	0000h
+	dw	0000h
+
+	dw	0BDA5H
+	dw	0000h
+	dw	0000h
+
+	dw	0BD84H
+	dw	0000h
+	dw	0000h
+
+	dw	0BDC7H
+	dw	0000h
+	dw	0000h
+
+	dw	0BE96H
+	dw	0BEA0H
+	dw	0000h
+
+	dw	0BE06H
+	dw	0000h
+	dw	0000h
+
+	dw	0BD8EH
+	dw	0000h
+	dw	0000h
+
+; MAIN BGM
+	dw	0000h
+	dw	0BED2H
+	dw	0000h
+
+	dw	0000h
+	dw	0BE24H
+	dw	0000h
+
+	dw	0000h
+	dw	0BE38H
+	dw	0000h
+
+	dw	0000h
+	dw	0000h
+	dw	0BDF3H
+
+	dw	0000h
+	dw	0000h
+	dw	0BE1AH
+
+	dw	0000h
+	dw	0000h
+	dw	0BE2EH
+
+	dw	0000h
+	dw	0000h
+	dw	0BE42H
+
+	dw	0000h
+	dw	0000h
+	dw	0BE10H
+
+flg_loop:
+	db	00h

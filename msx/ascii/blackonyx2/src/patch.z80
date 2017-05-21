@@ -1,0 +1,83 @@
+; BLACK ONYX II (c)ASCII 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f800h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a, (03h)
+	cp	03
+	jr	z,click_sound
+	cp	04
+	jr	z,click2_sound
+	cp	02
+	jr	z,play_pcm3
+	cp	01
+	jr	z,play_pcm2
+
+play_pcm1:
+	ld	a,005H
+	ld	(07000H),a	; Bank 6
+	jr	play_pcm
+
+play_pcm2:
+	ld	a,006H
+	ld	(07000H),a	; Bank 6
+
+play_pcm:
+	call	05B1Fh
+
+	ld	a,001H
+	ld	(07000H),a	; Bank 1
+	jp	play_end
+
+play_pcm3:
+	ld	a,002H
+	ld	(06000H),a	; Bank 6
+	ld	a,007H		;
+	ld	(07000H),a	;
+	call	04D4DH		;
+	ld	a,000H
+	ld	(06000H),a	; Bank 6
+	ld	a,001H
+	ld	(07000H),a	; Bank 1
+	jp	play_end
+
+click_sound:
+	call	088B7h
+	jp	play_end
+
+click2_sound:
+	call	088A0h
+	jp	play_end
+
+stop:
+	di
+	ei
+
+play_end:
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+init:
+	ret
