@@ -1,0 +1,67 @@
+; Famicle (c)Bit2 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+; play
+	call	05900h
+
+	di
+	in	a,(03h)		; Code No.
+	ld	(0E882h), a
+	call	058E4h
+	ei
+	jr	play_end
+
+play_se:
+	di
+	in	a,(03h)		; Code No.
+	call	058D8h
+	ei
+	jr	play_end
+
+stop:
+	di
+	call	05900h
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+	ret
+
+irq:
+	call	0593DH		; Sound irq
+	ret

@@ -1,0 +1,92 @@
+; Nyancle (c)Bit2 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	ld	a, (flglp)
+	cp	01h
+	call	z, replay
+
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	0441Bh
+
+	in	a, (05h)
+	ld	(flglp), a
+	in	a,(03h)		; Code No.
+	ld	(plcode), a
+	push	af
+	in	a,(04h)
+	out	(03h),a
+	pop	af
+
+	di
+	call	05014h
+	ei
+	jr	play_end
+
+play_se:
+	di
+	ld	a, 05h
+	call	05005h
+	ei
+	jr	play_end
+
+
+stop:
+	di
+	xor	a
+	ld	(flglp), a
+	call	0441Bh		; Stop
+	call	08018h
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+replay:
+	ld	a, (plcode)
+	call	05014h
+	ret
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	in	a, (07h)
+	ld	(0D00Ch), a	; OPLL flag
+
+	ret
+
+irq:
+	call	08000H		; Sound irq
+	ret
+
+flglp:
+	db	00h
+plcode:
+	db	00h
