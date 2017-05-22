@@ -1,0 +1,95 @@
+; Warroid (c)ASCII 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+	di
+	in	a,(03h)		; Code No.
+	add	a,a
+	ld	l,a
+	ld	h,00h
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	call	05DB0h
+	ei
+	jr	play_end
+
+play_se:
+	in	a,(03h)		; Code No.
+	add	a,a
+	ld	l,a
+	ld	h,00h
+	ld	de,setbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	call	05D69h
+	jr	play_end
+
+stop:
+	di
+	call	05F62h
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	call	04987h
+
+; timer entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 049BBh
+	ld	(0FDA0h), hl
+
+	ret
+
+mustbl:
+	dw	06037h
+	dw	0634Ah
+	dw	06398h
+
+setbl:
+	dw	068B8h
+	dw	068A6h
+	dw	06842h
+	dw	06856h
+	dw	0687Eh
+;	dw	068F0h		; SE stop
+	dw	06892h
+	dw	0686Ah
+	dw	068CAh
+	dw	068DCh
