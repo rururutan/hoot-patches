@@ -1,0 +1,121 @@
+; ChimaChima (c)Bothec 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	in	a, (03h)	; Code No.
+	add	a, a
+	ld	l, a
+	add	a, a
+	add	a, l
+	ld	l, a
+	ld	h, 00h
+	ld	de, mustbl
+	add	hl, de
+
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	inc	hl
+	push	de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	inc	hl
+	push	de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	inc	hl
+	push	de
+
+	pop	bc
+	pop	de
+	pop	hl
+	call	068A3H
+
+	ld	a, 01h
+	ld	(flgply),a
+
+	in	a,(04h)
+	ld	(irqloop), a
+
+	jr	play_end
+
+play_stop:
+	di
+	xor	a
+	ld	(flgply),a
+	call	0690Ah
+	ei
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h),hl
+
+	ret
+
+irq:
+	ld	a, (flgply)
+	cp	01h
+	ret	nz
+
+	ld	a, (irqloop)
+	ld	b, a
+irq_loop:
+	call	06832h
+	djnz	irq_loop
+	ret
+
+
+mustbl:
+	dw	06F09H
+	dw	00000h
+	dw	00000h
+
+	dw	06EAFH
+	dw	06EDAH
+	dw	00000H
+
+	dw	06BADH
+	dw	06CB8H
+	dw	06DC3H
+
+flgply:
+	db	00h
+
+irqloop:
+	db	01h

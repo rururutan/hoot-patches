@@ -1,0 +1,70 @@
+; Relics (c)Borthtec 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f100h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	di
+	in	a,(03h)		; code No.
+
+	cp	01h
+	jr	nz, ending
+
+opening:
+	ld	a,007H
+	ld	hl,04CF4H
+	ld	de,053B2H
+	ld	bc,05894H
+	jp	dataset
+
+ending:
+	ld	a,007H
+	ld	hl,0474AH
+	ld	de,048CDH
+	ld	bc,04AAFH
+
+dataset:
+	call	0444AH
+	ei
+
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+stop:
+	di
+	call	04407h
+	ei
+
+	xor	a		; hoot status変更
+	out	(02h),a
+
+	jr	loop
+
+init:
+
+	call	04407h
+
+	ld	a,009H
+	ld	(06800H),a
+	ret
+

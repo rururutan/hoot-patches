@@ -1,0 +1,100 @@
+; 銀河英雄伝説 (c)Bothtec 用
+; メインルーチン
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a, (04h)
+	cp	01h
+	jr	z, play_se
+
+	call	play_stop
+
+	di
+
+	in	a,(03h)		; Code No.
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	ld	de, 0BC97h
+	ld	bc, 0F09h
+	ldir
+
+	call	0D20Eh		; ch init
+	ld	bc, 0FF00h
+	ld	d,060H		;
+	call	0D18Fh		; req
+	ei
+	jr	play_end
+
+play_se:
+	in	a,(03h)		; Code No.
+	ld	(0CCA6h),a	; se no
+	jr	play_end
+
+play_stop:
+	ld	bc,FFFFh
+	ld	d,008H
+	call	0D1E7H
+	ret
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+stop:
+	di
+	call	play_stop
+	ei
+	jr	play_end
+
+init:
+	ld	a, 0c3h
+	ld	(001Ch), a
+	ld	hl, calslt
+	ld	(0001Dh), hl
+	ld	a, 098h
+	ld	(0CBA8h), a
+
+	in	a, (07h)
+	ld	(0CBA9h), a	; opll flag
+	call	0CBAAh		; irq set
+	call	0D20Eh		; ch init
+	ret
+
+calslt:
+	jp	(ix)
+
+mustbl:
+	dw	4000h
+	dw	4A7Ch
+	dw	5986h
+	dw	647Dh
+	dw	735Dh
