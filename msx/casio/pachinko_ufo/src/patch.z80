@@ -1,0 +1,145 @@
+; Pachi UFO (c)Casio 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f370h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a, (04h)
+	cp	01h
+	jr	z, play_start
+
+	call	play_stop
+
+play_start:
+	di
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	b, a
+	add	a, a		; x4
+	add	a, b		; x6
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	xor	a
+	ld	c, a
+	ld	b, 03h
+pllp:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	a,d
+	cp	00h
+	jr	z,ignr
+	push	bc
+	push	hl
+	ld	b, c		; ch no
+	call	0B9CFh		; Sound Req
+	pop	hl
+	pop	bc
+ignr:
+	inc	c
+	djnz	pllp
+
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	0B9F8h
+	ret
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+;	ld	hl, 08010h	; sound irq
+	ld	hl, 0BA30h	; sound irq
+	ld	(0FDA0h), hl
+
+	ret
+
+mustbl:
+	dw	0BC7EH				; 00
+	dw	0BCFAH
+	dw	0BD61H
+
+	dw	0BE2AH
+	dw	00000h
+	dw	00000h
+
+	dw	0BE76H
+	dw	0BEA7H
+	dw	0BED8H
+
+	dw	0BF03H
+	dw	0BF22H
+	dw	0BF41H
+
+	dw	0BF60H				; 04
+	dw	0BF79H
+	dw	0BF92H
+
+	dw	00000h
+	dw	0BE5CH
+	dw	00000h
+
+	dw	09FC7H
+	dw	00000h
+	dw	00000h
+
+	dw	0BE49H				; 07
+	dw	00000h
+	dw	00000h
+
+	dw	00000h				; 08
+	dw	00000h
+	dw	0BDF2H
+
+	dw	00000h
+	dw	0BE6FH
+	dw	00000h
+
+	dw	00000h
+	dw	00000h
+	dw	0BDB6H
+
+	dw	00000h
+	dw	00000h
+	dw	0BDC6H
+
+	dw	00000h
+	dw	00000h
+	dw	0BDD6H
+
+	dw	0BE1DH
+	dw	00000h
+	dw	00000h
+

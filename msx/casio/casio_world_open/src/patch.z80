@@ -1,0 +1,132 @@
+; Casio World Open (c)Casio 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f370h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a, (04h)
+	cp	01h
+	jr	z, play_start
+
+	call	play_stop
+
+play_start:
+	di
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	b, a
+	add	a, a		; x4
+	add	a, b		; x6
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	xor	a
+	ld	c, a
+	ld	b, 03h
+pllp:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	a,d
+	cp	00h
+	jr	z,ignr
+	push	bc
+	push	hl
+	ld	b, c		; ch no
+	call	0BD03h		; Sound Req
+	pop	hl
+	pop	bc
+ignr:
+	inc	c
+	djnz	pllp
+
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	0BD2Ah
+	ret
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 0BD75h	; sound irq
+	ld	(0FDA0h), hl
+
+	ret
+
+mustbl:
+	dw	0BB93H		; 00
+	dw	0BBAFH
+	dw	00000H
+
+	dw	0BC29H
+	dw	0BC78h
+	dw	00000h
+
+	dw	00000H
+	dw	00000H
+	dw	0BBFCH
+
+	dw	00000h
+	dw	00000H
+	dw	0BB86h
+
+	dw	00000h
+	dw	00000H
+	dw	0BBECh
+
+	dw	00000h
+	dw	00000h
+	dw	0BBD2h
+
+	dw	00000H
+	dw	0BC13H
+	dw	00000H
+
+	dw	00000h
+	dw	00000h
+	dw	0BC09h
+
+	dw	0BCD3h		; 08
+	dw	0BCE6H
+	dw	00000h
+
+	dw	0BBE2h
+	dw	00000H
+	dw	00000h
+
+	dw	0BCF9h		; 0a
+	dw	00000H
+	dw	00000h
+

@@ -1,0 +1,72 @@
+; 一寸法師 (c)カシオ 用
+; メインルーチン
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+	jp	loop
+
+loop:
+
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z, mus_2ch
+
+	cp	02h
+	jr	z, mus_1ch
+
+mus_3ch:
+	call	08904h
+	halt
+
+	in	a,(03h)		; Code No.
+	ld	hl,0E2BEH
+	call	0B2F4h
+	jr	play_end
+
+mus_2ch:
+	call	08904h
+	halt
+
+	in	a,(03h)		; Code No.
+	call	0B2F1h
+	jr	play_end
+
+mus_1ch:
+	in	a,(03h)		; Code No.
+	call	0B2E6h
+	jr	play_end
+
+stop:
+	di
+	call	08904h
+	ei
+
+play_end:
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 08A26h
+	ld	(0FDA0h), hl
+
+	ret
