@@ -1,0 +1,105 @@
+; ラビリンス/魔王の迷宮 (c)Pack-In-Video 用
+; (C) RuRuRu
+; 2010/07/15 1st Release.
+; 2017/06/18 Fix bank bug.
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	04070h
+	call	04073h
+
+	in	a,(07h)		; デバイス取得(02:msxa)
+	bit	1,a
+	jr	nz,play_msxa
+
+	in	a,(03h)		; Code No.
+	cp	000h
+	jr	nc,play_psg
+
+	ld	hl,0D600H	; Clear work
+	ld	de,0D601H
+	ld	bc,01000H
+	ld	(hl),000H
+	ldir
+	jr	play_psg2
+
+play_psg:
+	ld	(0D600H),a	; Sound Code
+	in	a,(04h)		; Code No.
+	ld	(0D601H),a	; Sound Code
+	call	04025h
+
+play_psg2:
+	call	04028h
+	ei
+	jr	play_end
+
+play_msxa:
+	in	a,(03h)		; Code No.
+	call	04070h
+	call	04073h
+	ei
+	jr	play_end
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	ei
+	jr	loop
+
+stop:
+	call	0402Bh
+	call	04076h
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	in	a,(07h)		; デバイス取得(02:msxa)
+	bit	1,a
+	jr	nz,devmsxa
+
+devpsg:
+	xor	a
+	jr	initdrv
+
+devmsxa:
+	ld	a, 01
+
+initdrv:
+	ld	(0D900h),a	; MSX-Audio flag
+
+	ld	a, 01h		; Restore bank value
+	ld	(0D8CEh),a
+	inc	a
+	ld	(0D8CFh),a
+	inc	a
+	ld	(0D8D0h),a
+
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 041B6h
+	ld	(0FDA0h), hl
+
+	call	0402Bh		; Stop
+	call	04076h
+
+	ret

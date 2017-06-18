@@ -1,0 +1,118 @@
+; Space Camp (c)PackInVideo 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a, (04h)
+;	cp	01H
+;	jr	z,play_se
+
+;	call	092a9h		; Stop
+
+; play
+	call	07573h			; init
+
+	in	a,(03h)		; Code No.
+	add	a,a		; x2
+	ld	l,a
+	add	a,a		; x4
+	add	a,l		; x6
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+
+	ld	b, 03h
+	ld	c, 00h
+	di
+pl_loop:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	push	bc
+	push	hl
+	ld	b,c
+	call	0754Ch		; Play (b=ch de=addr)
+	pop	hl
+	pop	bc
+	inc	c
+	xor	a
+	cp	d
+	jr	z,pl_loope
+	djnz	pl_loop
+pl_loope:
+	ei
+	jr	play_end
+
+play_se:
+	in	a,(03h)		; Code No.
+	call	099BEh
+
+play_end:
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+stop:
+	call	07573h			; init
+
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+
+; entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 075BEh
+	ld	(0FDA0h), hl
+
+	call	07573h			; init
+	ret
+
+mustbl:
+	dw	0B7F3h
+	dw	0B850h
+	dw	00000h
+
+	dw	0B90Dh
+	dw	0B95Eh
+	dw	00000h
+
+	dw	0B9BBh
+	dw	0B9CEH
+	dw	0B9E1H
+
+	dw	0B9F4H
+	dw	0BA0DH
+	dw	00000h
+
+	dw	0BA26H
+	dw	0BA5CH
+	dw	00000h
+
+	dw	0BA92H
+	dw	0BAB1H
+	dw	00000h
