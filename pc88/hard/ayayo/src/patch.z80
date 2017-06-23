@@ -1,0 +1,92 @@
+;
+; はっちゃけあやよさん for PC-88 用 hoot用演奏ルーチン
+; (C) RuRuRu
+; 2017/06/23 1st Release
+;
+; data offset
+; m1.obj   DC00h
+; ayay.obj CDF0h
+
+	cseg
+	org	0000h
+
+stack:	equ	083FFh		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	2
+	ld	sp,stack
+	call	init
+	ei
+loop:
+	in	a,(00h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+	call	0C007h
+
+	in	a,(01h)
+	cp	01h
+	jr	z,song1
+	cp	02h
+	jr	z,song2
+
+	ld	hl, 04000h	; m1.obj
+	ld	de, 0DC00h
+	ld	bc, 01000h
+	ldir
+
+	out	(01h),a
+	call	0C003h		; Play start
+	jr	loop
+
+song1:
+	ld	hl, 04000h	; m1.obj
+	ld	de, 0DC00h
+	ld	bc, 01000h
+	ldir
+	ld	hl, 0DC00h
+	jr	play2
+
+song2:
+	ld	hl, 05000h	; ayayo.obj
+	ld	de, 0CDF0h
+	ld	bc, 01500h
+	ldir
+	ld	hl, 0CDF00h
+	jr	play2
+
+play2:
+	ld	(0E1FCh),hl	; Data pointer
+	call	0C009h
+
+	call	0C003h		; Play start
+
+	ld	a, 0FFh
+	out	(01h),a		; 曲データを読み込む
+	jr	loop
+
+stop:
+	in	a,(032h)
+	or	080h
+	out	(032h),a
+	call	0C000h		; Stop
+	xor	a		; 停止処理
+	out	(00h),a
+	jr	loop
+
+init:
+	ld	a, 0F3h
+	ld	i,a
+
+	ld	a, 0C9h
+	ld	(0E814h), a
+
+	call	0C000h
+	ret
