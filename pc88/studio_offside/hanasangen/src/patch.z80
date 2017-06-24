@@ -1,0 +1,56 @@
+;
+; 華三眩 for PC-88 用 hoot用演奏ルーチン
+; (C) RuRuRu
+; 2017/06/24 1st Release
+;
+
+	cseg
+	org	0000h
+
+stack:	equ	04FFFh		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	2
+	ld	sp,stack
+	call	init
+	ei
+loop:
+	in	a,(00h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+	call	08000h		; Play start
+	jr	play_end
+
+stop:
+	call	08003h		; Stop
+
+play_end:
+	xor	a		; 停止処理
+	out	(00h),a
+	jr	loop
+
+init:
+	ld	hl, 09000h
+	ld	(08032h),hl	; Data ptr
+
+	ld	a, 05h
+	ld	(0220h),a	; PIC level
+
+	ld	a, 002h
+	ld	i,a
+
+	ld	hl,irq
+	ld	(00208h), hl
+
+	ret
+
+irq:
+	ret
