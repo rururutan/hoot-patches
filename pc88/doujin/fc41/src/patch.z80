@@ -1,0 +1,66 @@
+; PMD88用
+; メインルーチン
+
+	cseg
+	org	0000h
+
+stack:	equ	00100h		; スタックエリア
+mdata:	equ	01000h		; 曲データアドレス
+vdata:	equ	08000h		; 音色データアドレス
+
+; 割込みベクタ 
+
+	jr	main
+	dw	hook,0,0
+	dw	hook,0,0,0
+
+; メインループ
+
+main:	di
+	im	2
+	ld	sp,stack
+	xor	a
+	ld	i,a
+	ld	hl,mdata	; 曲データアドレス
+	ld	(0aa0fh),hl
+	ld	hl,vdata	; 音色データアドレス
+	ld	(0aa11h),hl
+	ld	hl,hook		; 割込み終了
+	ld	(0aa16h),hl
+	ld	a,0c9h		; VRAM用パッチ
+	ld	(0aa22h),a
+	ld	(0aa3ah),a
+	ei
+
+loop:	ld	hl,check	; デバッグ用カウンタ
+	inc	(hl)
+
+	in	a,(00h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,push0
+
+	call	0aa03h		; 演奏停止
+	in	a,(01h)
+	out	(01h),a		; 曲データを読み込む
+	call	0aa00h		; 演奏開始
+	jr	loop
+
+push0:	xor	a
+	out	(00h),a
+	ld	a,4
+	call	0aa06h		; 演奏停止
+	jr	loop
+
+hook:
+	push	af		; ダミー割込みルーチン
+	ld	a,0ffh
+	out	(0e4h),a
+	pop	af
+	ei
+	ret			; 割込み終了
+
+check:	db	0		; for DEBUG
+
