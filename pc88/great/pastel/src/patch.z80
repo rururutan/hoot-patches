@@ -1,0 +1,56 @@
+; 気分はぱすてるたっち!! (c)Great 用
+; メインルーチン
+
+	cseg
+	org	0000h
+
+stack:	equ	00200h		; スタックエリア
+mdata:	equ	0d800h		; 曲データアドレス(固定)
+
+; メインループ
+
+main:
+	di
+	im	2
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(00h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+	in	a,(01h)
+	out	(01h),a		; 曲データを読み込む
+	call	0E000h
+	ld	a,01h
+	out	(0E6h), a
+	jr	loop
+
+init:
+	ld	a, 0C3h
+	ld	(020h), a
+	ld	hl, dcmp
+	ld	(021h), hl
+	ld	a, 0F3h
+	ld	i, a
+	ret
+
+stop:
+	xor	a		; 停止処理
+	out	(00h),a
+	call	0E068h		; 演奏停止
+	jr	loop
+
+dcmp:
+	ld	a,h
+	sub	d
+	ret	nz
+	ld	a,l
+	sub	e
+	ret
