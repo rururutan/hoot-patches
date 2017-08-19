@@ -1,0 +1,174 @@
+; Thunder Ball (c)ASCII 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f370h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	di
+
+xor	a		;
+ld	de,08BA6H	;
+call	08F6FH		; Sound Req?
+ld	a,001H		;
+ld	de,08BA6H	;
+call	08F6FH		; Sound Req?
+ld	a,002H		;
+ld	de,08BA6H	;
+call	08F6FH		; Sound Req?
+ld	a,02AH		;
+call	08E27H		;
+
+;ld	a,001H		;
+;ld	de,08CB1H	;
+;call	08F6FH		; Sound Req?
+;ld	a,008H		;
+;call	08E27H		;
+
+;	in	a, (03h)	; Code No.
+;	call	08E27H
+
+;	add	a, a		; x2
+;	ld	b, a
+;	add	a, a		; x4
+;	add	a, b		; x6
+;	ld	e, a
+;	ld	d, 00h
+;	ld	hl, mustbl
+;	add	hl, de
+;	xor	a
+;	ld	c, a
+;	ld	b, 03h
+;pllp:
+;	ld	e,(hl)
+;	inc	hl
+;	ld	d,(hl)
+;	inc	hl
+;	ld	a,d
+;	cp	00h
+;	jr	z,ignr
+
+;	push	bc
+;	push	hl
+;	ld	b, c
+;	call	08F6Fh
+;	pop	hl
+;	pop	bc
+ignr:
+;	inc	c
+;	djnz	pllp
+
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	08F94h
+	ret
+
+init:
+	call	08F94H
+
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 08CDBh
+	ld	(0FDA0h), hl
+
+	ret
+
+mustbl:
+	dw	08BA6H
+	dw	08BA6H
+	dw	08BA6H
+
+	dw	08BD2H
+	dw	00000h
+	dw	00000h
+
+	dw	08BB5H
+	dw	00000h
+	dw	00000h
+
+	dw	08BE6H
+	dw	00000h
+	dw	00000h
+
+	dw	08BF5H
+	dw	00000h
+	dw	00000h
+
+	dw	08C4AH
+	dw	00000h
+	dw	00000h
+
+	dw	08C3DH
+	dw	00000h
+	dw	00000h
+
+	dw	08C90H
+	dw	00000h
+	dw	00000h
+
+	dw	08C09H
+	dw	00000h
+	dw	00000h
+
+	dw	08C23H
+	dw	00000h
+	dw	00000h
+
+	dw	08C59H
+	dw	00000h
+	dw	00000h
+
+	dw	08C68H
+	dw	00000h
+	dw	00000h
+
+	dw	08C77H
+	dw	00000h
+	dw	00000h
+
+	dw	08CB1H
+	dw	00000h
+	dw	00000h
+
+	dw	08C9CH
+	dw	00000h
+	dw	00000h
+
+	dw	08C86H
+	dw	00000h
+	dw	00000h
+
+	dw	08CC5H
+	dw	00000h
+	dw	00000h
+

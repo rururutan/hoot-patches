@@ -1,0 +1,128 @@
+; Queens Golf (c)ASCII 用
+; @autor RuRuRu
+; @date 2013/09/08 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f000h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	bit	0,a
+	jr	nz,play_se
+
+play_start:
+	di
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	b, a
+	add	a, a		; x4
+	add	a, b		; x6
+	ld	e, a
+	ld	d, 00h
+	ld	hl, bgmtbl
+	add	hl, de
+
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	push	de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	c,(hl)
+	inc	hl
+	ld	b,(hl)
+	pop	hl
+	call	0BF57h
+	jr	play_end
+
+
+play_se:
+	di
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+
+	call	0BF80h
+
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	0BF71h
+	ret
+
+init:
+	call	0AC3Ah
+	ret
+
+bgmtbl:
+	dw	0AF5Dh
+	dw	0AF8Dh
+	dw	0AFC2h
+
+	dw	0B075h
+	dw	0B090h
+	dw	0B0ABh
+
+	dw	0B0C6h
+	dw	0B0DAh
+	dw	0B109h
+
+	dw	0B143h
+	dw	0B152h
+	dw	0B161h
+
+	dw	0B170h
+	dw	0B177h
+	dw	0B17Eh
+
+mustbl:
+	dw	0B132H
+	dw	0AFF3H
+	dw	0B0FBH
+	dw	0B041H
+	dw	0B11EH
+	dw	0AFE9H
+	dw	0B061H
+	dw	0B06BH
+	dw	0B04BH
+	dw	0B055H
+

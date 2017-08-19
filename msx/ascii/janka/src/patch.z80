@@ -1,0 +1,85 @@
+; Janka (c)ASCII 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f000h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+;	call	play_stop
+
+play_start:
+
+	di
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	add	a, a		; x4
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	ld	a,(hl)
+	ld	(0E046h),a
+	inc	hl
+	ld	a,(hl)
+	ld	(0E1E7h),a
+	inc	hl
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ex	de,hl
+	call	0B6F6h
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	ei
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+;	call	090h
+	call	0B797h
+	ret
+
+init:
+	ret
+
+mustbl:
+	db	02h,00h
+	dw	0B757h
+
+	db	05h,00h
+	dw	0B75Fh
+
+	db	02h,00h
+	dw	0B75Bh
+
+	db	03h,00h
+	dw	0B769h
+
+	db	0Ah,01h
+	dw	0B76Fh
+
+	db	0Ah,01h
+	dw	0B783h

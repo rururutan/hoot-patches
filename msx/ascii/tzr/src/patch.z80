@@ -1,0 +1,75 @@
+; TZR (c)ASCII 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f370h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+play_start:
+	di
+
+	ld	hl, jp_ret
+	push	hl
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	push	de
+	pop	ix
+	jp	(ix)
+
+jp_ret:
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	04087h
+	call	090h
+	ret
+
+init:
+	ld	a, 0c9h
+	ld	(0FD9Fh), a
+	ld	(0C0D4h), a
+	call	056D6h
+	call	04087h
+	ret
+
+mustbl:
+	dw	05459h
+	dw	04922h
+	dw	056D6h

@@ -1,0 +1,101 @@
+; TawaraKun (c)ASCII 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+	in	a,(03h)		; Code No.
+	cp	00
+	jr	nz, play_se
+
+	di
+
+	ld	de,0BADDH	;
+	xor	a
+	call	0BE53H		; Sound Req
+	ld	de,0BB40H
+	ld	a,001H
+	call	0BE53H		; Sound Req
+	ld	a,00AH		;
+	call	0BD0BH		;
+
+	ei
+	jp	play_end
+
+play_se:
+	dec	a
+	add	a, a		; x2
+	ld	e, a
+	ld	d, 00h
+	ld	hl, setbl
+	add	hl, de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+
+	di
+	call	09752H		; Sound
+	ei
+
+play_end:
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+play_stop:
+	call	0976Ch
+	call	090h
+	ret
+
+stop:
+	call	play_stop
+
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	call	0BE78h		; Init
+	call	0BFDDh		; Set IRQ
+	call	0976Ch		; Ch Init?
+	ret
+
+setbl:
+	dw	0BBBAH		; 00
+	dw	0BBC1H
+	dw	0BBE4H
+	dw	0BC15H
+	dw	0BBFCH
+	dw	0BC23H
+	dw	0BBC8H
+	dw	0BBD6H
+	dw	0BBAEH
+	dw	0BC23H
+	dw	0BC15H
+	dw	0BC31H
+	dw	0BC0AH
+	dw	0BBFCH
+	dw	0BBF2H		; 0E

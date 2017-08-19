@@ -1,0 +1,80 @@
+; The Castle (c)Ascii 用
+; メインルーチン
+
+	cseg
+	org	0400h
+
+stack:	equ	0f000h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	ld	a,000H
+	ld	(0EAF3H),a
+
+	di
+	in	a,(03h)		; code No.
+
+	add	a,a
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	push	de
+	inc	hl
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	pop	hl
+	call	05B2FH
+;	call	07769H
+
+	ld	a,006H
+	ld	(0EAF3H),a	; tempo
+	ei
+
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+stop:
+	di
+	ld	a,000H
+	ld	(0EAF3H),a
+	ei
+
+	xor	a		; hoot status変更
+	out	(02h),a
+
+	jr	loop
+
+init:
+	call	090h
+	call	04D20h
+
+	ret
+
+mustbl:
+	dw	078D2H, 07916H
+	dw	07964H, 07993H
+	dw	079B7H, 079DEH
+	dw	07A03H, 07A3CH
+	dw	07A73H, 07A8FH

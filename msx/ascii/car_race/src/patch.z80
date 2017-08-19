@@ -1,0 +1,64 @@
+; Car Race (c)ASCII 用
+; @autor RuRuRu
+; @date 2011/05/10 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a, (03h)
+	ld	(flg_loop), a
+	xor	a
+	ld	c, a
+	in	a, (04h)
+	ld	b, a
+
+pl_loop:
+	push	bc
+	call	05100h
+	pop	bc
+
+	in	a,(02h)		; キー入力待ち
+	cp	01h
+	jr	nz, stop
+
+	ld	a, (flg_loop)
+	cp	01
+	jr	z, pl_loop
+
+	jr	play_end
+
+stop:
+	di
+	call	090h
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ret
+
+flg_loop:
+	db	00h
