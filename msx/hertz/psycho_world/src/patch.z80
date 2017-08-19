@@ -1,0 +1,63 @@
+;
+; Psycho World用 hoot用演奏ルーチン
+; (C) RuRuRu
+; 2010/05/08 1st Release
+;
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	03500h		; 曲データアドレス
+
+; メインループ
+
+main:	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	ld	a, 0FFh
+	call	1D06h		; 停止
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+
+	in	a,(05h)		; ループ回数
+	ld	e,a
+
+	in	a,(04h)		; Offsetを読み込む
+
+	call	01D03H
+	ei
+
+	jr	loop
+
+stop:
+	xor	a		; 停止処理
+	out	(02h),a
+	ld	a, 0FFh
+	call	1D06h		; 停止
+;	ld	a, 0FFh
+;	call	1D03h		; 停止
+	jr	loop
+
+init:
+; entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 01D00h
+	ld	(0FDA0h), hl
+
+	call	1D0Fh		; 初期化
+
+	ret
