@@ -1,0 +1,90 @@
+; Mr. Do! (c)Columbia 用
+; (C) RuRuRu
+; 2012/03/28 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a, (04h)
+	cp	01h
+	jr	z, play_start
+
+	call	play_stop
+
+play_start:
+	di
+	ei
+	in	a, (03h)	; Code No.
+
+	ld	hl, play_end
+	push	hl
+
+	add	a,a
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ex	de,hl
+	jp	(hl)
+
+;	call	0D26Bh
+;	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	0DA14h		; init
+	ret
+
+init:
+	di
+	ld	hl,04040H
+	ld	de,0C000H
+	ld	bc,02000H
+	ldir
+
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 0DCADh	; sound irq
+	ld	(0FDA0h), hl
+
+	call	0DA14h		; init
+	ret
+
+
+mustbl:
+	dw	0D244h
+	dw	0D247h
+	dw	0D25Ah
+	dw	0D25Fh
+	dw	0D26Bh
+	dw	0D274h
+	dw	0D279h
