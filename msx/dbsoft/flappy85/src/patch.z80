@@ -1,0 +1,44 @@
+; Flappy Limted 85 (c)dB-Soft 用
+; (C) RuRuRu
+; 2011/04/08 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	di
+	call	04D90h		; Sound Req
+	ei
+	jr	play_end
+
+stop:
+	di
+	call	04D98h		; Sound Req
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ret
