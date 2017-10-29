@@ -1,0 +1,84 @@
+; 4th Unit 3 : Dual Targets (c)DataWest 用
+; (C) RuRuRu
+; 2010/07/05 1st Release
+; 2016/07/05 2nd Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	0A2EEh		; Stop
+
+	in	a,(03h)		; Code No.
+	add	a, a
+	add	a, a
+	ld	e, a
+	ld	d, 00h
+	ld	hl, 05000h
+	add	hl, de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	inc	hl
+	ld	c, (hl)
+	inc	hl
+	ld	b, (hl)
+
+	ex	de, hl
+	ld	de, 003h
+	add	hl, de
+	ld	de, 0C800h
+	ldir
+
+	in	a, (04h)
+	ld	e, a		; loop flag
+
+	ld	hl, 0C800h
+	call	0A305H		; Play
+	jr	play_end
+
+stop:
+	di
+	call	0A2EEH		; Stop
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 0A2ABh
+	ld	(0FDA0h), hl
+
+	ld	a, 0C9h
+	ld	(0A2B2h), a
+
+	call	0A2EEH		; Stop
+	ld	a,01h
+	ld	(0C695h),a
+
+	ret
+
