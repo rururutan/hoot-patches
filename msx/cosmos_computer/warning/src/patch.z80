@@ -1,0 +1,61 @@
+; Warning (c)Comsos Computer 用
+; (C) RuRuRu
+; 2011/02/04 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	di
+	in	a,(03h)		; Code No.
+	out	(03h), a
+
+	xor	a
+	ld	(code), a
+	ld	hl, work
+	call	0DC00h
+	ei
+
+	jr	loop
+
+
+stop:
+	di
+	ld	a, 01h
+	ld	(code), a
+	ld	hl, work
+	call	0DC00h
+	call	090h
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ret
+
+work:
+	db	00h, 00h
+code:
+	db	00h
