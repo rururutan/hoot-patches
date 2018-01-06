@@ -1,0 +1,5 @@
+md mus
+cd mus
+bcut ..\PUYOPUYO.DSK DRIVER.BIN 0x0B0000 0x2000
+bcut ..\PUYOPUYO.DSK DATA.BIN 0x0E1B9 0x1D00
+cd ..
