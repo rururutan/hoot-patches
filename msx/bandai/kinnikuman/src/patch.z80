@@ -1,0 +1,77 @@
+; キン肉マンコロシアロムデスマッチ (c)バンダイ 用
+; メインルーチン
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+
+	ld	a,0c3h
+	ld	(0FD9Fh), a
+	ld	hl,08bc2h
+	ld	(0FDA0h), hl
+	call	00090h
+
+	ei
+
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	di
+
+	in	a,(03h)		; Code No.
+
+	cp	005h
+	jr	nc,loop
+
+	ld	hl,MUSIC_TBL
+	ld	bc,0000h
+	add	a,a
+	ld	c,a
+	add	hl,bc
+	ld	c,(hl)
+	inc	hl
+	ld	b,(hl)
+	ld	h,b
+	ld	l,c
+	call	music_init
+
+	xor	a
+	out	(02h),a
+
+	ei
+
+	jr	loop
+
+music_init:
+	jp	(hl)
+	ret
+
+stop:
+	xor	a		; 停止処理
+	out	(02h),a
+
+	call	08b77h
+	di
+
+	jr	loop
+
+MUSIC_TBL:
+	;	HL
+	dw	055a5h
+	dw	055bah
+	dw	055d1h
+	dw	055f0h
+	dw	055feh
