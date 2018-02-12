@@ -1,0 +1,102 @@
+; JESUS MSX2 (c)Enix 用
+;
+; @autor RuRuRu
+; @date 2013/01/26 1st Release
+;
+
+	cseg
+	org	08000h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	0175h
+
+	di
+	in	a, (03h)
+	out	(03h), a
+	ei
+
+	ld	hl, 0C000h
+	call	0160h
+	jr	loop
+
+stop:
+	call	0BECh
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0038h), a
+	ld	hl, irq
+	ld	(0039h), hl
+
+	ld	a, 0c3h
+	ld	(0001Ch), a
+	ld	hl, calslt
+	ld	(001Dh), hl
+
+
+	call	0175h
+	ret
+
+calslt:
+	jp	(ix)
+
+irq:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+
+	in	a, (099h)
+	and	a
+	jp	p,irq_end
+
+	call	0D810h
+
+irq_end:
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret
+

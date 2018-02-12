@@ -1,0 +1,74 @@
+; Wing Man 2 MSX (c)Enix 用
+;
+; @autor RuRuRu
+; @date 2011/04/06 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	di
+
+	ld	a, 04h
+	ld	(07000h), a
+
+	in	a,(03h)
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+
+	ld	de,0D6C3H
+	call	0454EH		; Copy?
+
+	ld	hl,0D6C3H
+	call	04203h
+	ei
+	jr	play_end
+
+stop:
+	di
+	call	04206h
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	call	04200h		; Sound Init
+	ret
+
+mustbl:
+	dw	0692Ah
+	dw	06936h
+	dw	06942h
+	dw	080E8h
+	dw	04ABAh
+	dw	00000h

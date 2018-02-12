@@ -1,0 +1,69 @@
+; Angelous MSX (c)Enix 用
+;
+; @autor RuRuRu
+; @date 2011/09/26 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	0B303h
+
+	di
+	in	a,(03h)		; Code No.
+	out	(03h), a
+
+	ld	hl,0AC00H	; Data Ptr
+	call	0B300H		; API 00
+	ei
+
+	jr	loop
+
+stop:
+;	call	0B303h		; stop
+	ld	a, 03h
+	call	0B306h		; fadeout
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(001Ch), a
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+	ld	hl, calslt
+	ld	(001Dh), hl
+	ret
+
+irq:
+	di
+	call	0B309h
+	ei
+	ret
+
+calslt:
+	jp	(ix)

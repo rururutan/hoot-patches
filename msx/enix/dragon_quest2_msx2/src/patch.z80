@@ -1,0 +1,63 @@
+; Dragon Quest II MSX2 (c)Enix 用
+;
+; @autor RuRuRu
+; @date 2011/02/15 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,play_stop
+
+	in	a,(03h)		; Code No.
+	ld	(0CA44H),a
+	call	0CA45h
+
+play_end:
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+play_stop:
+	xor	a
+	ld	(0CA44H),a
+	call	0CA45h
+	jp	play_end
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+; ルーチンコピー
+	ld	a,01Fh
+	ld	(07800H),a
+	ld	hl,0A000h
+	ld	de,0C000h
+	ld	bc,01AFFh
+	ldir
+
+	ret
+
+irq:
+	call	0CBE0h
+	call	0CC13h
+	ret
