@@ -1,0 +1,64 @@
+; Doki Doki Card League (c)Great
+;
+; @autor RuRuRu
+; @date 2015/05/08 1st Release
+;
+
+	cseg
+	org	00400h
+
+stack:	equ	0f400h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	0D806h		; Stop
+
+	in	a,(03h)		; Code No.
+	out	(03h),a
+
+	call	0D803h		; Play
+
+	jr	loop
+
+stop:
+	call	0D806h		; Stop
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	; patch sub routine
+	ld	a, 0c3h		; jp
+	ld	(0DBFDh), a
+	ld	hl, rdmem
+	ld	(0DBFEh), hl
+
+	ld	a,0C9h
+	ld	(0DCD2h),a
+
+	ret
+
+	; 本来はVDP経由でVRAMにデータを置いているが、
+	; RAMアクセスするようにパッチを当てる。
+rdmem:
+	ld	a,(hl)
+	ret
+
+irq:
+	ret
