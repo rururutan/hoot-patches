@@ -1,0 +1,113 @@
+; ぎゅわんぶらあ自己中心派 MSX (c)Game Arts
+;
+; @autor RuRuRu
+; @date 2010/06/20 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+; play
+	di
+	in	a,(03h)		; Code No.
+
+	add	a,a
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	ld	(06800h),a
+	inc	hl
+	ld	a,(hl)
+	ld	(07000h),a
+	inc	hl
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	push	de
+	pop	hl
+
+;	call	04673h	; se1
+;	call	04679h	;se 2
+
+	ld	a,0F6H
+	call	04545h
+	ei
+	jr	play_end
+
+play_se:
+	ld	a,0F5H		; Sound Stop
+	call	04545h
+
+	di
+	in	a,(03h)		; Code No.
+	call	04545h
+	ei
+	jr	play_end
+
+stop:
+	di
+	ld	a,0F5H		; Sound Stop
+	call	04545h
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ld	a,0F1H		; Sound init
+	call	04545h
+
+	in	a,(07h)
+	ld	(0F105h), a	; OPLL flag
+	ret
+
+irq:
+	call	0A840h		; Sound irq
+	ret
+
+mustbl:
+	db	01h		; Bank
+	db	02h
+	dw	0BA94h		; Address
+
+	db	04h
+	db	02h
+	dw	06FB7h
+
+	db	01h
+	db	06h
+	dw	09BABh
