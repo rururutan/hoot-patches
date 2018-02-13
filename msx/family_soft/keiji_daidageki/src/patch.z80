@@ -1,0 +1,45 @@
+; 刑事大打撃 (c)Familysoft
+;
+; @autor RuRuRu
+; @date 2015/10/21 1st Release
+;
+; 備考:タイトル/エンド曲はBASICルーチンで演奏
+
+	cseg
+	org	01000h
+
+stack:	equ	0f400h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+;	in	a,(03h)		; Code No.
+
+	call	0D460h
+	jr	play_end
+
+stop:
+	call	0D406h
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ret
+
