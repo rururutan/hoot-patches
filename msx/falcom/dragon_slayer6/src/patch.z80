@@ -1,0 +1,80 @@
+; Dragon Slayer VI MSX2 (c)Falcom
+;
+; @autor RuRuRu
+; @date 2010/06/01 1st Release
+;
+
+	cseg
+	org	03000h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0c000h		; 曲データアドレス
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+	call	0B10h		; stop
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+	ei
+
+	call	0B0Dh
+
+	jr	loop
+
+play_se:
+	in	a,(03h)
+	ld	(0B05h),a
+	jr	end
+
+stop:
+	ld	a, 02h
+	call	0B13h
+
+end:
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	in	a,(07h)		; デバイス取得(01:opll)
+	and	01h
+	jp	z,devpsg
+	ld	a, 01h
+	jp	setflag
+devpsg:
+	ld	a, 00h
+setflag:
+	ld	(01501h),a
+
+	ret
+
+irq:
+	call	0B0Ah
+	ret
