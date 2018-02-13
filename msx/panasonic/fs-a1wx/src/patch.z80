@@ -1,0 +1,81 @@
+; FS-A1 WX BIOS (c)Panasonic
+;
+; @autor RuRuRu
+; @date 2015/12/20 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0a800h		; 曲データアドレス
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jp	nz,stop
+
+	di
+
+	ld	a,000h		;LOOP有無
+	ld	hl,mdata
+
+	call	04116h
+
+	xor	a
+	out	(02h),a
+
+	ei
+
+	jp	loop
+
+stop:
+
+	di
+
+	xor	a		; 停止処理
+	out	(02h),a
+
+	call	04119h
+
+	ei
+
+	jr	loop
+
+init:
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, 0411Fh
+	ld	(0FDA0h), hl
+
+	; Bank切り替えはASCII8で代用
+	ld	a, 0D7h		; m-slot : ram/rom/rom/ram
+	out	(0A8h),a
+	ld	a,02Ch
+	ld	(07000H),a
+	inc	a
+	ld	(07800H),a
+
+	ld	a, 03Fh		; m-slot : ram/ram/ram/bios
+	out	(0A8h),a
+	ld	a, 04h
+	ld	(0FFFFh),a	; s-slot : bios/fmbios/none/none
+	ld	a, 0D3h		; m-slot : ram/fmbios/rom/ram
+	out	(0A8h),a
+
+	ld	hl,0C200h
+	call	04113h
+
+	ret
