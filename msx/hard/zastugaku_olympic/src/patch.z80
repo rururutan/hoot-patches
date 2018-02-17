@@ -1,0 +1,49 @@
+; 雑学オリンピック (c)Hard
+;
+; @autor RuRuRu
+; @date 2012/05/15 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp, stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a, (02h)	; キー入力待ち
+	or	a
+	jr	z, loop
+
+	cp	01h
+	jr	nz, stop
+
+	di
+	call	0B003h
+	ei
+
+	jr	play_end
+
+stop:
+	di
+	call	0B075h		; Stop
+	call	090h
+	ei
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h), a
+	jr	loop
+
+init:
+	call	0B000h
+	ret
