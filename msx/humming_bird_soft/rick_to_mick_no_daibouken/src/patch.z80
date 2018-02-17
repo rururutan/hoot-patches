@@ -1,0 +1,113 @@
+; りっくとみっくの大冒険 (c)Humming Bird Soft
+;
+; @autor RuRuRu
+; @date 2010/06/25 1st Release
+; @date 2017/07/04 2nd Fix music table. Add SE support.
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	nz,play_se
+
+; play
+	call	06CB7H
+
+	call	04520h
+
+	ld	hl,play_req
+	push	hl		; Ret addr
+
+	in	a,(03h)		; Code No.
+	push	af
+	sub	5
+	ld	(0CE34h),a	; Stage No
+	pop	af
+	ld	e,a
+	add	a,a
+	add	a,e
+	ld	e,a
+	ld	d,00h
+	ld	hl,mustbl
+	add	hl,de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	a,(hl)		; Ch num
+	ld	(0CE27h),a
+	push	de
+	pop	ix
+	jp	(ix)
+
+play_req:
+	di
+	call	06C7Eh
+	ei
+	jr	play_end
+
+play_se:
+	in	a,(03h)
+	call	06CD1h
+	jr	play_end
+
+stop:
+	di
+	call	06CB7H
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	call	06CB7h
+	ret
+
+mustbl:
+	dw	0453Eh		; Bonus Stage
+	db	00h
+	dw	0455Ch		; Title
+	db	40h
+	dw	0456Fh		; Ending?
+	db	40h
+	dw	04582h		; Game Over
+	db	00h
+	dw	04595h		; Bonus Stage Result
+	db	00h
+	dw	044EDh		; Stage 1
+	db	00h
+	dw	044EDh		; Stage 2
+	db	00h
+	dw	044EDh		; Stage 3
+	db	00h
+	dw	044EDh		; Stage 4
+	db	00h
+	dw	044EDh		; Stage 5
+	db	00h
+	dw	044EDh		; Stage 6
+	db	00h
+	dw	044EDh		; Stage 7
+	db	00h

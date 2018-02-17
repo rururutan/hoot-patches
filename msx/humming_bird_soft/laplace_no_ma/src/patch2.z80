@@ -1,0 +1,207 @@
+; ラプラスの魔 PSG (c)Humming Bird Soft
+;
+; @autor RuRuRu
+; @date 2011/08/28 1st Release
+;
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0a000h		; 曲データアドレス
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	call	chk_loop
+
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+	ei
+
+	in	a,(04h)
+	cp	0FFh
+	jr	nz,adr_normal
+adr_op:
+	ld	e, 020h		; P1のみ特殊 0120h
+	ld	a, 01h
+	jr	adr_end
+adr_normal:
+	ld	e, 0h
+adr_end:
+	ld	d, a
+	ld	hl, mdata
+	add	hl ,de
+
+
+	xor	a		; Loop Limit
+	call	04B6Eh		; Play
+
+	in	a,(05h)
+	ld	(flg_loop),a
+	ld	d, a
+	ld	e, 0
+	ld	hl, mdata
+	add	hl ,de
+	ld	(ply_addr), hl
+
+	jr	loop
+
+play_stop:
+	xor	a
+	ld	(flg_loop),a
+	call	04B43h
+	ret
+
+stop:
+	call	play_stop
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0001Ch), a
+	ld	(00030h), a
+	ld	hl, calslt
+	ld	(0001Dh), hl
+	ld	hl, callf
+	ld	(00031h), hl
+
+	; Replace function for OPLL search
+;	ld	a, 0C3h
+;	ld	hl, opllsearch
+;	ld	(0908Eh), a
+;	ld	(0908Fh), hl
+
+	; Work Init
+;	call	09000h
+	call	09003h
+
+	;tone address
+	ld	hl, 0B800h
+	ld	(04BC1h),hl
+
+	in	a, (07h)
+	cp	01
+	jr	nz, init_end
+
+	ld	a, 033h		; RAM/BIOS/RAM/BIOS
+	out	(0A8h), a
+	ld	a, 14h		; BIOS/FM/FM/BIOS
+	ld	(0FFFFh), a
+	ld	a, 0FFh		; RAM/RAM/RAM/RAM
+	out	(0A8h), a
+
+init_end:
+	ld	hl, 0A000h
+	call	04B43h		; Sound Init
+	ret
+
+chk_loop:
+	ld	hl,flg_count
+	inc	(hl)
+	ld	a,(hl)
+	cp	0ffh
+	jr	nz,chk_end
+
+	ld	a, (flg_loop)
+	cp	00
+	jr	z, chk_end
+
+	call	04B9Ah
+	ei
+	and	a
+	jr	nz,chk_end
+
+	call	play_stop
+
+	ld	hl, (ply_addr)
+	xor	a		; Loop Limit
+	ld	(flg_loop),a
+	call	04B6Eh
+chk_end:
+	ret
+
+flg_count:
+	db	00
+
+callf:
+;	pop	hl
+;	inc	hl
+;	inc	hl
+;	inc	hl
+;	push	hl
+;	ld	a, 00
+;	ret
+
+	ex	af,af'
+	exx
+
+	; ram <-> fmbiosのslot切り替え
+	ld	a, 0F3h		; RAM/FM/ROM/RAM
+	out	(0A8h), a
+
+	pop	hl
+	inc	hl
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	push	hl		; return address
+
+	push	de
+	pop	ix		; call address
+
+	push	ix
+	ld	hl, callfr
+	push	hl
+	exx
+	ex	af,af'
+	jp	(ix)
+
+calslt:
+	push	ix
+	push	af
+	ld	a, 0F3h		; RAM/FM/RAM/RAM
+	out	(0A8h), a
+	pop	af
+	ld	iy, callfr
+	push	iy
+	jp	(ix)
+
+callfr:
+	pop	ix
+	push	af
+	ld	a, 0FFh		; RAM/RAM/RAM/RAM
+	out	(0A8h),a
+	pop	af
+	ret
+
+;opllsearch:
+;	in	a, (07h)
+;	cp	01
+;	ret
+
+flg_loop:
+	db	00h
+ply_addr:
+	dw	0A120h
