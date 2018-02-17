@@ -1,0 +1,125 @@
+; Vaxol (c)Heart Denshi
+;
+; @autor RuRuRu
+; @date 2010/10/01 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	07C9Eh
+	di
+
+	ld	hl, play_end
+	push	hl		; ret addr
+
+	in	a,(03h)		; Code No.
+	add	a,a		; x2
+	add	a,a		; x4
+	add	a,a		; x8
+	add	a,a		; x10
+	add	a,a		; x20
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+
+	ld	a,(hl)
+	ld	(07000h), a
+	inc	hl
+	push	hl
+	ret
+
+play_se:
+	in	a,(03h)		; Code No.
+	call	057CBH
+	jr	play_end
+
+stop:
+	di
+	call	07C9Eh
+
+play_end:
+	ei
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+;	ld	a, 0c3h
+;	ld	(0FD9Fh), a
+;	ld	hl, irq
+;	ld	(0FDA0h), hl
+
+	call	07C32h
+	ret
+
+irq:
+	call	07C9EH
+	ret
+
+; 最初の1byteはBank#1のバンク番号
+; 07BB7h関数コールの直後にアドレスをずらずら並べないと駄目なので
+; 此の様な形になる。
+mustbl:
+	db	003h, 0CDh, 0B7h, 07Bh, 073h, 0A8h, 0CEh, 0A9h
+	db	088h, 0AAh, 0BDh, 07Ch, 0D2h, 07Ch, 0ECh, 07Ch
+	db	002h, 07Dh, 01Fh, 07Dh, 038h, 07Dh, 055h, 07Dh
+	db	06Eh, 07Dh, 000h, 000h, 0C9h, 000h, 000h, 000h
+
+	db	003h, 0CDh, 0B7h, 07Bh, 0B4h, 0AAh, 03Eh, 0ABh
+	db	093h, 0ABh, 0BDh, 07Ch, 0D2h, 07Ch, 0ECh, 07Ch
+	db	002h, 07Dh, 01Fh, 07Dh, 038h, 07Dh, 000h, 000h
+	db	0C9h, 000h, 000h, 000h, 000h, 000h, 000h, 000h
+
+	db	004h, 0CDh, 0B7h, 07Bh, 054h, 0A4h, 0EBh, 0A4h
+	db	06Dh, 0A5h, 0BDh, 07Ch, 0D2h, 07Ch, 0ECh, 07Ch
+	db	002h, 07Dh, 01Fh, 07Dh, 038h, 07Dh, 055h, 07Dh
+	db	06Eh, 07Dh, 000h, 000h, 0C9h, 000h, 000h, 000h
+
+	db	005h, 0CDh, 0B7h, 07Bh, 0C0h, 0A6h, 0B3h, 0A7h
+	db	0D3h, 0A8h, 0BDh, 07Ch, 0D2h, 07Ch, 0ECh, 07Ch
+	db	002h, 07Dh, 01Fh, 07Dh, 038h, 07Dh, 055h, 07Dh
+	db	06Eh, 07Dh, 000h, 000h, 0C9h, 000h, 000h, 000h
+
+	db	006h, 0CDh, 0B7h, 07Bh, 095h, 0A9h, 085h, 0AAh
+	db	05Dh, 0ABh, 0BDh, 07Ch, 0D2h, 07Ch, 0ECh, 07Ch
+	db	002h, 07Dh, 01Fh, 07Dh, 038h, 07Dh, 055h, 07Dh
+	db	06Eh, 07Dh, 000h, 000h, 0C9h, 000h, 000h, 000h
+
+	db	006h, 0CDh, 0B7h, 07Bh, 083h, 0ABh, 0B7h, 0ABh
+	db	0D9h, 0ABh, 0BDh, 07Ch, 0D2h, 07Ch, 0ECh, 07Ch
+	db	002h, 07Dh, 01Fh, 07Dh, 038h, 07Dh, 055h, 07Dh
+	db	06Eh, 07Dh, 000h, 000h, 0C9h, 000h, 000h, 000h
+
+	db	007h, 0CDh, 0B7h, 07Bh, 046h, 09Eh, 035h, 09Fh
+	db	03Ah, 0A0h, 0BDh, 07Ch, 0D2h, 07Ch, 0ECh, 07Ch
+	db	002h, 07Dh, 01Fh, 07Dh, 038h, 07Dh, 055h, 07Dh
+	db	06Eh, 07Dh, 000h, 000h, 0C9h, 000h, 000h, 000h
+
+	db	007h, 0CDh, 0B7h, 07Bh, 092h, 0A0h, 0D3h, 0A0h
+	db	010h, 0A1h, 0BDh, 07Ch, 0D2h, 07Ch, 0ECh, 07Ch
+	db	002h, 07Dh, 01Fh, 07Dh, 038h, 07Dh, 055h, 07Dh
+	db	06Eh, 07Dh, 000h, 000h, 0C9h, 000h, 000h, 000h
+
