@@ -1,0 +1,131 @@
+; 中華大仙 (c)HOT-B
+;
+; @autor RuRuRu
+; @date 2010/06/02 1st Release
+;
+
+	cseg
+	org	0B000h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	di
+	in	a,(03h)		; Code No.
+	ld	l, a
+	in	a,(04h)		; Loop
+	ld	h, a
+	call	01A19h
+	ei
+	jp	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	01A9Bh
+	ret
+
+init:
+	ld	a, 0c3h
+	ld	(001Ch), a
+	ld	(0038h), a
+	ld	(0090h), a
+	ld	(0093h), a
+
+	ld	hl, calslt
+	ld	(001Dh), hl
+
+	ld	hl, timer
+	ld	(0039h), hl
+
+	ld	hl, psgini
+	ld	(0091h), hl
+
+	ld	hl, psgw
+	ld	(0094h), hl
+
+	call	play_stop
+	ret
+
+calslt:
+	jp	(ix)
+
+psgini:
+	ld	e,00h
+	ld	a,08h
+	call	psgw
+	inc	a
+	call	psgw
+	inc	a
+	call	psgw
+	inc	a
+
+	ld	e,0B8h
+	ld	a,07
+	call	psgw
+	ret
+
+psgw:
+	di
+	out     (0A0h),a
+	push    af
+	ld      a,e
+	out     (0A1h),a
+	ei
+	pop     af
+	ret
+
+timer:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	di
+	call	019E6h
+	ei
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret

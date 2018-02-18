@@ -1,0 +1,62 @@
+; Plamedes (c)HOT-B
+;
+; @autor RuRuRu
+; @date 2011/01/24 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+	call	0900Ch		; Stop
+
+	in	a,(03h)		; Code No.
+	call	09006h
+	jp	play_end
+
+play_se:
+	in	a,(03h)		; Code No.
+	call	0900Fh
+
+play_end:
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+play_stop:
+	call	0900Ch
+	ret
+
+stop:
+	call	play_stop
+
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	call	09000h
+	ret
+
