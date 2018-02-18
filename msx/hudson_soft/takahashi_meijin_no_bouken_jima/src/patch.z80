@@ -1,0 +1,73 @@
+; 高橋名人の冒険島 (c)Hudson
+;
+; @autor RuRuRu
+; @date 2010/06/02 1st Release
+; @date 2014/07/26 Fix play routine
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f600h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)		; flag
+	cp	01h
+	jr	z,se_play
+
+	call	08598h
+	halt
+
+	di
+	in	a,(03h)		; Code No.
+	ld	(0E78Ah), a
+	ei
+
+	jp	play_end
+
+se_play:
+; SE
+	in	a,(03h)		; Code No.
+	ld	(0E7BEh), a
+
+play_end:
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+stop:
+	ld	a, 00h
+	ld	(0E78Ah), a
+
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+
+; entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 0410Dh
+	ld	(0FDA0h), hl
+
+	call	044FAh
+	call	0857BH
+	call	0856DH
+	ret
