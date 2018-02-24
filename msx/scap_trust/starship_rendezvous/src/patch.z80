@@ -1,0 +1,85 @@
+; Starship Rendezvous (c)ScapTrust
+;
+; @autor RuRuRu
+; @date 2010/04/07 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0ba00h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(03h)
+	cp	80h
+	jr	nc,se_play
+
+	ld	a, 01h		; Stop
+	call	09400h		; API
+
+	ld	a, 03h
+	call	09400h		; API
+
+	di
+	in	a,(03h)
+	out	(03h), a
+
+	ld	a, 10h
+	call	09400h		; API
+	ei
+
+	jr	loop
+
+se_play:
+	call	09400h		; API
+	jp	go_loop
+
+stop:
+	ld	a, 04h		; Fade out
+	call	09400h		; API
+
+go_loop:
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 09b38h
+	ld	(0FDA0h), hl
+
+	ld	a, 00h		; init
+	call	09400h		; API
+
+	in	a,(07h)		; デバイス取得(01:opll)
+	and	01h
+	jp	z,devpsg
+	ld	a, 0ffh
+	jp	initdev
+devpsg:
+	ld	a, 00h
+initdev:
+	ld	(09571h),a
+
+	ld	bc, mdata
+	ld	a, 07h		; set data adr
+	call	09400h		; API
+
+	ret
