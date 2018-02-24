@@ -1,0 +1,72 @@
+; たんば (c)MicroNet
+;
+; @autor RuRuRu
+; @date 2010/09/16 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a,(03h)
+	push	af
+	call	play_stop
+	pop	af
+	ld	(drvno), a
+	cp	01h
+	jr	z, sinmus
+
+	call	04051h
+	jr	play_end
+
+sinmus:
+	call	0C0EFh
+	call	0C0DFh
+	jr	play_end
+
+play_stop:
+	ld	a,(drvno)
+	cp	01h
+	jr	z,sinstop
+	call	065C9h
+	ret
+sinstop:
+	call	0C0DCh
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c9h
+	ld	(04060h), a	; ret patch
+
+	in	a, (07h)
+	ld	(0C062h), a	; opll flag
+	call	06526h
+	ret
+
+drvno:
+	db	00h
