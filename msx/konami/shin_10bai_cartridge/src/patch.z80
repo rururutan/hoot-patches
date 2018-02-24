@@ -1,0 +1,80 @@
+; 新10倍カートリッジ(CRC32:084c5803)
+;
+; @autor RuRuRu
+; @date 2016/07/30 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0df80h		; スタックエリア
+stopc:	equ	001h		; 停止コード
+sndbnk:	equ	07h		; サウンドバンク
+sndply:	equ	09B3Ch		; サウンドコード発行
+sndirq:	equ	09CA5h		; サウンド割り込み
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,play_stop
+
+	in	a, (04h)
+	cp	01h
+	jr	nz, no_stop
+
+	call	stop
+	halt
+
+no_stop:
+	in	a,(03h)		; Code No.
+	call	sndply
+	jr	play_end
+
+stop:
+	ld	a, stopc
+	call	sndply
+	ret
+
+play_stop:
+	call	stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+chg_bank:
+	push	af
+	ld	a, sndbnk
+	ld	(08000h), a
+	inc	a
+	ld	(0A000h), a
+	pop	af
+	ret
+
+init:
+	call	chg_bank
+
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ret
+
+irq:
+	di
+	call	sndirq
+	ei
+	ret
+

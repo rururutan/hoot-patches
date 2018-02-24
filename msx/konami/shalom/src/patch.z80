@@ -1,0 +1,107 @@
+; Shalom(CRC32:cf60fa7d)
+;
+; @autor RuRuRu
+; @date 2016/07/24 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0E210h		; スタックエリア
+stopc:	equ	01h		; 停止コード
+sndbnk:	equ	1Dh		; サウンドバンク
+sndply:	equ	0415Bh		; サウンドコード発行
+sndirq:	equ	06449h		; サウンド割り込み
+
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,play_stop
+
+	in	a,(04h)
+	cp	01h
+	jr	nz,no_stop
+
+	call	stop
+	halt
+
+no_stop:
+	in	a,(03h)		; Code No.
+	call	sndply
+	jr	play_end
+
+stop:
+	ld	a, stopc
+	call	sndply
+	ret
+
+play_stop:
+	call	stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+chg_bank:
+	push	af
+	ld	a, sndbnk
+	ld	(06000h), a
+	inc	a
+	ld	(08000h), a
+	inc	a
+	ld	(0A000h), a
+	pop	af
+	ret
+
+rst_bank:
+	push	af
+	ld	a,(0F0F1H)
+	ld	(06000h), a
+	ld	a,(0F0F2H)
+	ld	(08000h), a
+	ld	a,(0F0F3H)
+	ld	(0A000h), a
+	pop	af
+	ret
+
+init:
+; bank
+	ld	a,001H
+	ld	(0F0F1H),a	; 6000~
+	inc	a
+	ld	(0F0F2H),a	; 8000~
+	inc	a
+	ld	(0F0F3H),a	; A000~
+
+; timer entry
+	ld	a,0c3h
+	ld	(0FD9Fh),a
+	ld	hl,irq
+	ld	(0FDA0h),hl
+
+	ld	a,0BFh
+	ld	e,a
+	ld	(0E2FEh),a
+	ld	a,07h
+	call	093h
+	call	stop
+	ret
+
+irq:
+	di
+	call	chg_bank
+	call	sndirq
+	call	rst_bank
+	ret

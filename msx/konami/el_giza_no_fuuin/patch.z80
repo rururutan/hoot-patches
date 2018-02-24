@@ -1,0 +1,112 @@
+; エルギーザの封印 MSX1(CRC32:e82a8e8e)/MSX2(CRC32:b1cb1052)共用
+;
+; @autor RuRuRu
+; @date 2016/07/17 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f0e0h		; スタックエリア
+stopc:	equ	01h		; 停止コード
+sndbnk:	equ	04h		; サウンドバンク
+sndini:	equ	06000h		; 初期化
+sndply:	equ	06003h		; サウンドコード発行
+sndirq:	equ	06006h		; サウンド割り込み
+
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,play_stop
+
+	in	a, (04h)
+	cp	01h
+	jr	nz, no_stop
+
+	call	stop
+	halt
+
+no_stop:
+	in	a,(03h)		; Code No.
+	di
+	call	chg_bank
+	call	sndply
+	call	rst_bank
+	ei
+	jr	play_end
+
+stop:
+	di
+	call	chg_bank
+	ld	a, stopc
+	call	sndply
+	call	rst_bank
+	ei
+	ret
+
+play_stop:
+	call	stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+chg_bank:
+	push	af
+	ld	a, sndbnk
+	ld	(07000h), a
+	inc	a
+	ld	(09000h), a
+	inc	a
+	ld	(0b000h), a
+	pop	af
+	ret
+
+rst_bank:
+	push	af
+	ld	a,(0F0F1H)
+	ld	(07000h), a
+	ld	a,(0F0F2H)
+	ld	(09000h), a
+	ld	a,(0F0F3H)
+	ld	(0b000h), a
+	pop	af
+	ret
+
+init:
+; bank change
+	ld	a,001H
+	ld	(0F0F1H),a	; 6000~
+	inc	a
+	ld	(0F0F2H),a	; 8000~
+	inc	a
+	ld	(0F0F3H),a	; A000~
+
+; timer entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	call	chg_bank
+	call	sndini
+	call	rst_bank
+	ret
+
+irq:
+	call	chg_bank
+	call	sndirq
+	call	rst_bank
+	ret

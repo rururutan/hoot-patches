@@ -1,0 +1,101 @@
+; ゴーファーの野望(CRC32:4b61ae91)
+;
+; @autor RuRuRu
+; @date 2016/07/10 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f0f0h		; スタックエリア
+
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,play_stop
+
+	in	a,(04h)
+	cp	01h
+	jr	nz,no_stop
+
+	call	stop
+	halt
+
+no_stop:
+	in	a,(03h)		; Code No.
+	di
+	call	chg_bank
+	call	06003h		; play
+	call	rst_bank
+	ei
+	jr	play_end
+
+stop:
+	di
+	call	chg_bank
+	ld	a, 01h
+	call	06003h		; play
+	call	rst_bank
+	ei
+	ret
+
+play_stop:
+	call	stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+chg_bank:
+	push	af
+	ld	a, 0Ah
+	ld	(07000h), a
+	inc	a
+	ld	(09000h), a
+	inc	a
+	ld	(0b000h), a
+	pop	af
+	ret
+
+rst_bank:
+	push	af
+	ld	a,(0F0F1H)
+	ld	(07000h), a
+	ld	a,(0F0F2H)
+	ld	(09000h), a
+	ld	a,(0F0F3H)
+	ld	(0b000h), a
+	pop	af
+	ret
+
+init:
+	call	chg_bank
+
+; timer entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	call	chg_bank
+	call	06000h
+	call	rst_bank
+	ret
+
+irq:
+	call	chg_bank
+	call	06006h		; IRQ
+	call	rst_bank
+	ret
