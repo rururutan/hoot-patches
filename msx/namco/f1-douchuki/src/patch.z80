@@ -1,0 +1,67 @@
+; F1道中記 (c)Namco
+;
+; @autor RuRuRu
+; @date 2010/10/08 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	in	a, (03h)
+	out	(03h),a
+	in	a, (04h)
+	add	a, 080h
+	call	0A000h
+	jr	loop
+
+play_stop:
+	di
+	ld	a, 0FFh
+	call	0A000h
+	ei
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	call	0A003h
+
+	in	a, (07h)
+	cp	00
+	jr	z, psg
+; opll
+	call	0A306h
+	ld	a, 000h
+	jr	iniend
+psg:
+	ld	a, 0FFh
+iniend:
+	ld	(0C040h), a
+
+	ret
+

@@ -1,0 +1,110 @@
+; Galaxian (c)Namco
+;
+; @autor RuRuRu
+; @date 2010/10/09 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0ffffh		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+;	call	play_stop
+
+	ld	a, 01h
+	ld	(0E08FH),a
+
+	ld	a, 01h
+	ld	(0E048H),a
+
+	in	a, (03h)	; Code No.
+
+
+	add	a,a
+	add	a,a
+
+	ld	hl,sound_req_tbl
+	ld	b,000h
+	ld	c,a
+	add	hl,bc
+
+	ld	a,(hl)
+	inc	hl
+	inc	hl
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ld	(de),a
+
+	ld	a, 00h
+	ld	(0E08FH),a
+	jr	play_end
+
+play_stop:
+	; Sound Disable
+	ld	a, 00h
+	ld	(0E048H),a
+	call	090h
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h),hl
+
+	call	05CC3h
+
+	ld	hl,04B9AH
+	ld	de,0E000H
+	ld	bc,00040H
+	ldir
+
+	ld	a,0a3h
+	ld	(0e08dh),a
+
+
+	; Sound Enable/Disable
+	ld	a, 00h
+	ld	(0E048H),a
+
+	ld	hl,000C9H	; これ入れるとバックの"ジー"音が消える
+	ld	(0E091H),hl	;
+
+	ret
+
+irq:
+	jp	05CDEh
+
+sound_req_tbl:
+
+	;	CODE	ADDR
+	dw	0001h,	0e07bh
+	dw	0001h,	0e080h
+	dw	0007h,	0e080h
+	dw	0001h,	0e084h
+	dw	0001h,	0e087h
+	dw	0001h,	0e08ah

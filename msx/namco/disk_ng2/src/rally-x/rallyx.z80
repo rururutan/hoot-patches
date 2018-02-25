@@ -1,0 +1,99 @@
+; ラリーX (c)ナムコ 用
+; メインルーチン
+
+	cseg
+	org	0400h
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+main:
+	di
+	im	1
+	ld	sp,stack
+
+	ld	a,0c3h
+	ld	(0fd9fh), a
+	ld	hl,068dch
+	ld	(0fda0h), hl
+	call	00090h
+
+	ld	a,001h
+	ld	(0e080h),a
+	call	068dch
+
+	ei
+
+loop:
+
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(03h)		; Code No.
+
+	cp	00ah
+	jr	nc,loop
+
+	di
+
+	ld	hl,MUSIC_TABLE
+	add	a,a
+	ld	b,000h
+	ld	c,a
+	add	hl,bc
+
+	ld	a,001h
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ld	(de),a
+
+	ei
+
+	xor	a
+	out	(02h),a
+
+	jr	loop
+
+stop:
+
+	di
+
+	xor	a
+	out	(02h),a
+
+	xor	a
+	ld	(0e510h),a
+	ld	(0e520h),a
+	ld	(0e530h),a
+	ld	(0e540h),a
+	ld	(0e541h),a
+	ld	(0e550h),a
+	ld	(0e551h),a
+	ld	(0e560h),a
+	ld	(0e562h),a
+	ld	(0e565h),a
+
+	call	00090h
+
+
+	ei
+
+	jr	loop
+
+
+MUSIC_TABLE:
+	dw	0e510h
+	dw	0e520h
+	dw	0e530h
+	dw	0e540h
+	dw	0e541h
+	dw	0e550h
+	dw	0e551h
+	dw	0e560h
+	dw	0e562h
+	dw	0e565h
+

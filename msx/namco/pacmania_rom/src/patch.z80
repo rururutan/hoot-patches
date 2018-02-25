@@ -1,0 +1,104 @@
+; Pac-mania(ROM) (c)Namco
+;
+; @autor RuRuRu
+; @date 2017/06/12 1st Release
+;
+; hoot 2017/12/31以降のバージョン必須
+;
+
+	cseg
+	org	0f000h
+
+;stack:	equ	0f380h		; スタックエリア
+stack:	equ	0eff0h		; スタックエリア
+mdata:	equ	0b000h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	call	04D9h		; sound enable
+	in	a, (03h)
+	ld	l,a
+	ld	h,00h
+	push	hl
+	call	093Bh
+	pop	bc
+	call	011D1h		; set IRQ
+	jp	play_end
+
+play_stop:
+	call	004E7h		; sound disable
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C9h
+	ld	(0038h), a
+	ld	(001Ch), a
+
+	ld	a, 00h
+	ld	(06800h),a	; bank(6000-7FFFh) to 1
+
+	ld	hl,07000H
+	ld	de,0C400H
+	ld	bc,01000H
+	ldir			; load startup
+
+	; all ram
+	ld	a, 0FFh		; ram/ram/ram/ram
+	out	(0A8h), a
+
+	ld	a, 0C9h
+	ld	(0C4F6h),a	; ret patch
+	ld	a, 0BDh
+	ld	(0C4DFh),a	; length C000 -> BD00
+	ld	a, 03h
+	ld	(0C4E7h),a	; src offset 0000 -> 0300
+	ld	a, 04h
+	ld	(0C4EBh),a	; dst offset 0100 -> 0400
+
+;	call	0C4FCh
+	call	0C954h		; search slot
+	call	0C4DDh		; load driver routine
+
+	ld	hl, irq
+	ld	(01214h),hl
+
+;	ld	a, 0C9h
+;	ld	(09F68h),a	; original IRQ
+
+	in	a, (07h)
+	ld	(091D9h),a	; OPLL flag
+
+	call	01267h
+	call	00876h
+
+	call	04D9h		; sound enable
+	call	11D1h		; set IRQ
+
+	ret
+
+irq:
+	ei
+	ret

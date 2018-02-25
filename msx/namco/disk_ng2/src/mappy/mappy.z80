@@ -1,0 +1,87 @@
+; マッピー (c)ナムコ 用
+; メインルーチン
+
+	cseg
+	org	0400h
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+main:
+	di
+	im	1
+	ld	sp,stack
+
+	ld	a,0c3h
+	ld	(0fd9fh), a
+	ld	hl,0784fh
+	ld	(0fda0h), hl
+	call	00090h
+
+	call	07817h
+
+	ei
+
+loop:
+
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(03h)		; Code No.
+
+	cp	009h
+	jr	nc,loop
+
+	di
+
+	ld	hl,MUSIC_TABLE
+	add	a,a
+	add	a,a
+	ld	b,000h
+	ld	c,a
+	add	hl,bc
+
+	ld	b,002h
+	ld	a,001h
+SET_ADDR:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ld	(de),a
+	inc	hl
+	djnz	SET_ADDR
+
+	ei
+
+	xor	a
+	out	(02h),a
+
+	jr	loop
+
+stop:
+
+	di
+
+	xor	a
+	out	(02h),a
+
+	call	07817h
+	call	00090h
+
+	ei
+
+	jr	loop
+
+
+MUSIC_TABLE:
+	dw	0f008h,	0f009h
+	dw	0f00ah,	0f00bh
+	dw	0f000h,	0f000h
+	dw	0f001h,	0f001h
+	dw	0f005h,	0f005h
+	dw	0f006h,	0f006h
+	dw	0f007h,	0f007h
+	dw	0f00ch,	0f00ch
