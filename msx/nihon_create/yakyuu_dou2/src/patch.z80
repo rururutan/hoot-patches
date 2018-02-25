@@ -1,0 +1,100 @@
+; 野球道2 (c)Nihon Create
+;
+; @autor RuRuRu
+; @date 2012/11/28 1st Release
+;
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0c500h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a, (03h)
+	out	(03h), a
+
+	in	a, (04h)	; Loop
+	ld	hl, mdata
+	ld	c, 01h		; Play
+	call	0BD00h
+	jr	play_end
+
+stop:
+	ld	c, 02h
+	call	0BD00h
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c9h
+	ld	(024h), a
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	(0001Ch), a
+	ld	hl, 0BDFFh
+	ld	(0FDA0h), hl
+	ld	hl, calslt
+	ld	(0001Dh), hl
+
+	ld	a, 03Fh		; m-slot : ram/ram/ram/bios
+	out	(0A8h),a
+	ld	a, 04h
+	ld	(0FFFFh),a	; s-slot : bios/fmbios/none/none
+	ld	a, 0F3h		; m-slot : ram/fmbios/ram/ram
+	out	(0A8h),a
+
+	call	0BEF1h
+	in	a, (07h)
+	ld	(0C440h), a	; OPLL flag
+	cp	00
+	jr	z, psgdev
+;opll
+	ld	hl, 02000h
+	ld	ix, 04113h
+	call	01Ch
+psgdev:
+	ret
+
+calslt:
+	di
+	push	af
+	push	bc
+
+	push	af
+	ld	a, 0F3h		; ram/fmbios/ram/ram
+	out	(0A8h), a
+	pop	af
+
+	push	hl
+	ld	hl, end_calslt
+	push	hl
+	pop	bc
+	pop	hl
+
+	push	bc
+	jp	(ix)
+end_calslt:
+	ld	a, 0FFh		; ram/ram/ram/ram
+	out	(0A8h), a
+	pop	bc
+	pop	af
+	ret
