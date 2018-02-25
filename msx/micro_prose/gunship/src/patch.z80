@@ -1,0 +1,52 @@
+; Gunship (c)Micro Prose
+;
+; @autor RuRuRu
+; @date 2011/09/29 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	di
+	call	083C8h
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ei
+
+	jr	play_end
+
+stop:
+	call	090h
+	ld	a, 0c9h
+	ld	(0FD9Fh), a
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c9h
+	ld	(0FD9Fh), a
+	ld	hl, 08457h
+	ld	(0FDA0h), hl
+	ret
+
