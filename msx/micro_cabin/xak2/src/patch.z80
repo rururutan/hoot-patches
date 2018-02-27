@@ -1,0 +1,71 @@
+; Xak II (c)MICRO CABIN
+;
+; @autor RuRuRu
+; @date 2010/05/11 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0c200h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+	ld	a,003h		; API 03 Stop
+	call	0CE03h
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+	ei
+
+	ld	a,002h		; API 02 Play
+	call	0CE03h
+	jp	play_end
+
+play_se:
+	in	a,(03h)
+	ld	c,a
+	ld	a,007h		; API 07 SE
+	call	0CE03h
+	xor	a
+	out	(02h),a
+
+play_end:
+	jr	loop
+
+stop:
+	di
+	ld	a,004h		; API 04 Fade out
+	ld	c,008h
+	call	0CE03h
+	ei
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 0CE00h
+	ld	(0FDA0h), hl
+	ret

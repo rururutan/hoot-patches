@@ -1,0 +1,52 @@
+; うる星やつら(Disk) (c)MICRO CABIN
+;
+; @autor RuRuRu
+; @date 2010/05/12 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0a100h		; 曲データアドレス
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+	ei
+
+	call	09C03h
+	jr	loop
+
+stop:
+	di
+;	call	090h
+	call	09C09h
+	ei
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	hl, 0A100h
+	ld	(09C0Dh), hl
+
+	ret

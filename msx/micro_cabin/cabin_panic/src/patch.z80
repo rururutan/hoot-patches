@@ -1,0 +1,96 @@
+; The Tower of Cabin (c)MICRO CABIN
+;
+; @autor RuRuRu
+; @date 2010/10/16 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0BDC0h		; 曲データアドレス
+api:	equ	0CCC3h		; API CALL
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(05h)
+	cp	01h
+	jr	z,play_se
+
+	ld	a,003h		; API 03 Stop
+	call	api
+
+	in	a,(04h)
+	call	copy_tone
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+	ei
+
+;	ld	ix, 0A000h
+;	ld	a,009h		; API 09 Play
+	ld	a,002h		; API 02 Play
+	call	api
+	jr	loop
+
+play_se:
+	in	a,(03h)
+	ld	c,a
+	ld	a,007h		; API 06 SE
+	call	api
+
+	jp	play_end
+
+stop:
+	di
+	ld	a,004h		; API 04 Fade out
+	ld	c,010h
+	call	api
+	ei
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ld	a,001h		; API 01 init
+	call	api
+
+	ret
+
+irq:
+	di
+	call	0CCC0h
+	ei
+	ret
+
+copy_tone:
+	ld	hl, 08000h
+	add	a, a
+	add	a, h
+	ld	h, a
+	ld	de, 0CAC0h
+	ld	bc, 0200h
+	ldir
+	ret

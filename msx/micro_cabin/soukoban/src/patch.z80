@@ -1,0 +1,113 @@
+; 倉庫番Perfect (c)MICRO CABIN
+;
+; @autor RuRuRu
+; @date 2010/03/30 1st Release
+;
+
+	cseg
+	org	09200h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	08000h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+;	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+
+	ld	a,003h		; API 03 Stop
+	call	002B6h
+
+	di
+	ld	a,002h		; API 02 Play
+	call	002B6h
+	ei
+	jp	play_end
+
+play_se:
+	in	a,(03h)
+	ld	c,a
+	ld	a,006h		; API 06 SE
+	call	002B6h
+
+	xor	a
+	out	(02h),a
+
+play_end:
+	jr	loop
+
+stop:
+	di
+	ld	a,004h		; API 04 Fade out
+	ld	c,010h
+	call	002B6h
+	ei
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+
+	ld	a, 0c3h
+	ld	(0038h), a
+	ld	hl, irq
+	ld	(0039h), hl
+
+	ld	hl, 08000h
+	ld	(06EE1h), hl	; BGM address
+
+;	ld	hl, 09500h
+;	ld	(06EE3h), hl	; SE address
+
+	ld	a,001h
+	call	002B6h
+
+	ret
+
+irq:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	0038Ch
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret
+

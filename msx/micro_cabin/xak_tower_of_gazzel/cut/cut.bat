@@ -1,0 +1,31 @@
+md mus
+cd mus
+bcut ..\GUZL0.DSK DRIVER.BIN 0x03000 0xc00
+bcut ..\GUZL0.DSK BGM1.BIN 0x014200 0x2c00
+bcut ..\GUZL0.DSK SE.BGE 0x016e00 0x400
+
+bcut ..\GUZL1.DSK BGM21.BIN 0x013000 0x1000
+bcut ..\GUZL1.DSK BGM22.BIN 0x014000 0x1400
+bcut ..\GUZL1.DSK BGM23.BIN 0x04AE00 0x3B000
+
+rem op
+bcut ..\GUZL0.DSK TONE0.BIN 0x014000 0x200
+rem generic
+bcut ..\GUZL1.DSK TONE1.BIN 0x13200 0x200
+rem xak2
+bcut ..\GUZL1.DSK TONE2.BIN 0x4EE00 0x200
+rem xak1
+bcut ..\GUZL1.DSK TONE3.BIN 0x64E00 0x200
+rem fray
+bcut ..\GUZL1.DSK TONE4.BIN 0x72C00 0x200
+
+bcut ..\GUZL2.DSK BGM3.BIN 0x038000 0x17000
+
+..\fraycut BGM1.BIN G11
+..\fraycut BGM21.BIN G21
+..\fraycut BGM22.BIN G22
+..\fraycut BGM23.BIN G23
+..\fraycut BGM3.BIN G31
+
+rem del DATA*
+cd ..

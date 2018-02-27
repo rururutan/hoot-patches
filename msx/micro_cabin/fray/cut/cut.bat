@@ -1,0 +1,18 @@
+md mus
+cd mus
+d88cut ..\FRAY_G0.D88 DRIVER.BIN 0 2 6 0xC00
+d88cut ..\FRAY_G0.D88 TONE.BIN 0 3 3 0x200
+d88cut ..\FRAY_G0.D88 SE.BGE 0 16 7 0x800
+d88cut ..\FRAY_D0.D88 DATA0 0 51 4 0x5200
+d88cut ..\FRAY_D1.D88 DATA1 0 85 6 0x11200
+d88cut ..\FRAY_G0.D88 DATA2 0 134 9 0x5c00
+d88cut ..\FRAY_G1.D88 DATA3 0 144 3 0x6000
+
+..\fraycut DATA0 D0
+..\fraycut DATA1 D1
+..\fraycut DATA2 G0
+..\fraycut DATA3 G1
+
+del DATA*
+
+cd ..

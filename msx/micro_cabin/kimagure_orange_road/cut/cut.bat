@@ -1,0 +1,19 @@
+md mus
+cd mus
+bcut ..\KIMAORE.dsk DRIVER.BIN  0x7400 0x1b00
+
+bcut ..\KIMAORE.dsk MUS00.BIN  0xAA47A 0xc00
+bcut ..\KIMAORE.dsk MUS01.BIN  0xAAD42 0xc00
+bcut ..\KIMAORE.dsk MUS02.BIN  0xAB64C 0xc00
+bcut ..\KIMAORE.dsk MUS03.BIN  0xAC04C 0xc00
+bcut ..\KIMAORE.dsk MUS04.BIN  0xAC8E2 0xc00
+bcut ..\KIMAORE.dsk MUS05.BIN  0xAD362 0xc00
+
+bcut ..\KIMAORE.dsk MUS10.BIN  0xA6100 0xe00
+bcut ..\KIMAORE.dsk MUS11.BIN  0xA69CE 0xe00
+bcut ..\KIMAORE.dsk MUS12.BIN  0xA7806 0xe00
+bcut ..\KIMAORE.dsk MUS13.BIN  0xA8376 0xe00
+bcut ..\KIMAORE.dsk MUS14.BIN  0xA8AEA 0xe00
+bcut ..\KIMAORE.dsk MUS15.BIN  0xA96CC 0xe00
+
+cd ..
