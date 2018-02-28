@@ -1,0 +1,181 @@
+; Marchen Veil (c)System Sacom
+;
+; @autor RuRuRu
+; @date 2011/01/12 1st Release
+;
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	04A00h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	call	chk_loop
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+;======================================
+; 演奏開始
+;======================================
+	call	stop_drv	; 前のドライバの停止
+
+	in	a,(04h)
+	ld	(flgdrv),a
+	call	stop_drv	; 指定ドライバの停止
+
+	push	af
+	ld	a, 01h
+	ld	(flgplay),a
+	pop	af
+
+	cp	00h
+	jr	nz,play_main
+
+	call	play_vis
+	jr	stop_end
+
+;======================================
+; MAIN.BIN演奏
+;======================================
+
+play_main:
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+	ei
+	call	08F0Dh
+	jr	loop
+
+
+;======================================
+; 演奏停止
+;======================================
+stop:
+	xor	a
+	ld	(flgplay),a
+
+	call	stop_drv
+
+stop_end:
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+;======================================
+; 初期化
+;======================================
+init:
+	call	07EB8h		; Init
+
+	ld	a, 0C9h
+	ld	(06B59h), a
+	ld	(074D2h), a
+
+	ret
+
+;======================================
+; VISSTG.BIN演奏
+;======================================
+play_vis:
+	in	a,(05h)
+	ld	(flgloop),a
+	in	a,(03h)
+	ld	hl,mustbl
+	add	a,a
+	add	a,l
+	ld	l,a
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	push	de
+	pop	ix
+	ld	hl,vis_end
+	push	hl
+	jp	(ix)
+vis_end:
+	ret
+
+;======================================
+; ループチェック
+;======================================
+chk_loop:
+	ld	a,(flgplay)
+	cp	0
+	jr	z,chk_end
+	ld	a,(flgdrv)
+	cp	1
+	jr	z, chk_main
+
+	ld	a,(flgloop)
+	cp	1
+	jr	nz,chk_end
+
+	call	07FD7h
+	and	07h
+	or	a
+	call	z,play_vis
+
+chk_end:
+	ret
+
+chk_main:
+	call	08F1Fh
+	ret
+
+;======================================
+; 停止
+;======================================
+stop_drv:
+	push	af
+
+	ld	a,(flgdrv)
+	cp	0
+	jr	nz, mainstop
+
+;======================================
+; VISSTG.BIN用停止
+;======================================
+	call	07F06h
+	call	07EB8h		; Stop
+
+	ld	a, 07h
+	call	07FA2h
+	jp	stopend
+
+;======================================
+; MAIN.BIN用停止
+;======================================
+mainstop:
+	call	08F13h		; Stop
+
+	ld	a, 07h
+	call	08F10h
+
+stopend:
+	pop	af
+	ret
+
+flgdrv:
+	db	00h
+flgplay:
+	db	00h
+flgloop:
+	db	01h
+
+mustbl:
+	dw	06B34h
+	dw	06D00h
+	dw	074ADh
