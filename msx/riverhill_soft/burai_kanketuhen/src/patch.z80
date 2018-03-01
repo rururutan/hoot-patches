@@ -1,0 +1,117 @@
+; Burai 完結編 (c)Brother / Riverhill Soft
+;
+; @autor RuRuRu
+; @date 2010/08/03 1st Release
+;
+
+	cseg
+	org	04000h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	05000h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+;	call	01826h
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+	ei
+
+	ld	hl, mdata
+
+	in	a, (04h)
+	cp	00h
+	jr	nz, tbldat
+
+	ld	(032BDh), hl
+	call	017EDh
+	jr	loop
+
+tbldat:
+	in	a, (04h)
+	dec	a
+	add	a, a
+	add	a, a
+	ld	e, a
+	ld	d, 00
+	add	hl, de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	ld	hl, mdata
+	add	hl, de
+	ld	(032BDh), hl
+	call	017EDh
+	jr	loop
+
+stop:
+	call	01826h
+
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0038h), a
+	ld	hl, timer
+	ld	(0039h), hl
+
+	call	01826h
+
+	ld	hl,0F09h
+	ld	(032B4h),hl
+	ld	hl,0120h
+	ld	(032B6h),hl
+	ld	a,032h
+	ld	(032B8h),a
+	ld	a,099h
+	ld	(032BAh),a
+	ld	(032BBh),a
+
+	ret
+
+timer:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	010C3h
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret

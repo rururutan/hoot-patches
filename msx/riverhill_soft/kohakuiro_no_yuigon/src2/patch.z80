@@ -1,0 +1,139 @@
+; 琥珀色の遺言(PSG) (c)Riverhill Soft
+;
+; @autor RuRuRu
+; @date 2012/01/09 1st Release
+;
+
+	cseg
+	org	00400h
+
+stack:	equ	0f300h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	call	chk_loop
+
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	07263h		; Stop
+
+	in	a,(04h)
+	cp	02
+	jr	z, with_intro
+
+	di
+	in	a,(03h)		; Code No.
+	out	(03h), a
+	ei
+
+	ld	hl, 078BFh
+play_common:
+	call	071F1h		; Play
+
+	xor	a
+	di
+	ld	(0FD9Fh), a
+	ld	a, 0C3h
+	ld	(0FDA0h), a
+	ei
+
+	jr	play_end
+
+with_intro:
+	in	a,(03h)		; Code No.
+	push	af
+	out	(03h),a
+
+	ld	hl, 078BFh
+	ld	de, 0a000h
+	ld	bc, 01000h
+	ldir
+
+	ld	a, 1
+	ld	(flg_loop), a
+
+	pop	af
+	inc	a
+	out	(03h),a
+
+	ld	hl, 0a000h
+	jr	play_common
+
+
+play_stop:
+	di
+	xor	a
+	ld	(flg_loop),a
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	ei
+	call	07263h		; Stop
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	ld	(06EE4h), a
+	ld	(06EA2h), a
+	ld	(06EA5h), a
+	ld	(072A3h), a
+	ld	(06E9Dh), a
+
+	ld	hl, 072FBh
+	ld	(0FDA0h), hl
+
+	in	a, (07h)
+	ld	(0F881h), a
+
+	ld	a, 098h				; VDP port
+	ld	(0F883h), a
+	ld	(0F884h), a
+
+	ret
+
+chk_loop:
+	ld	a, (flg_loop)
+	cp	00
+	jr	z, chk_end
+
+	ei
+	ld	a,(072EEH)			; play status
+	or	a
+	jr	z,chk_end
+
+	call	play_stop
+	call	090h
+
+	xor	a		; Loop Limit
+	ld	(flg_loop),a
+	ld	hl, 078BFh
+	call	071F1h		; Play
+	xor	a
+	ld	(0FD9Fh), a
+	ld	a, 0C3h
+	ld	(0FDA0h), a
+chk_end:
+	ret
+
+flg_loop:
+	db	00h
