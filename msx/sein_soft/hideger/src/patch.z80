@@ -1,0 +1,57 @@
+; Hideger (c)Sein
+;
+; @autor RuRuRu
+; @date 2010/11/29 1st Release
+; @date 2015/10/13 Support OPLL
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp, stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a, (02h)	; キー入力待ち
+	or	a
+	jr	z, loop
+
+	cp	01h
+	jr	nz, stop
+
+	di
+	call	0B003h		; Stop
+
+	di
+	in	a, (03h)
+	call	0B000h
+	ei
+
+	jr	play_end
+
+stop:
+	di
+	call	0B003h		; Stop
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h), a
+	jr	loop
+
+init:
+	in	a, (07h)
+	cp	0
+	jr	z, init_end
+
+	ld	a, 0F8h		; OPLL driver bug fix
+	ld	(0B032h), a
+
+init_end:
+	ret

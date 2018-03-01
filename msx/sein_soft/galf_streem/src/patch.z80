@@ -1,0 +1,70 @@
+; Galf Streem (c)Sein
+;
+; @autor RuRuRu
+; @date 2011/09/19 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp, stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a, (02h)	; キー入力待ち
+	or	a
+	jr	z, loop
+
+	cp	01h
+	jr	nz, stop
+
+	call	play_stop
+
+	di
+	in	a, (03h)
+	out	(03h), a
+	call	0404Ah
+	ei
+
+	jr	play_end
+
+stop:
+	di
+	call	play_stop
+	ei
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h), a
+	jr	loop
+
+play_stop:
+	xor	a
+	ld	(060A0h), a
+	call	0404Dh		; Stop
+	call	090h
+
+	ld	b, 08h
+	ld	a, 020h
+ko_loop:
+	out	(07Ch), a
+	push	af
+	ld	a, 00h
+	out	(07Dh), a
+	pop	af
+	inc	a
+	djnz	ko_loop
+	ret
+
+init:
+	in	a, (07h)
+	ld	(089B8h), a	; OPLL flag
+
+	ret
