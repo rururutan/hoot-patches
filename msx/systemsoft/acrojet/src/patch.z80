@@ -1,0 +1,63 @@
+; Acrojet (c)SystemSoft
+;
+; @autor RuRuRu
+; @date 2012/01/12 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	0C057h
+
+	ld	hl,05307H
+	ld	de,0D000H
+	ld	bc,00900H
+	ldir
+	call	0C034H		; Sound play
+	jr	play_end
+
+stop:
+	di
+	call	0C057h
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(001Ch), a
+	ld	hl, calslt
+	ld	(001Dh), hl
+
+	ld	hl,04907H
+	ld	de,0C000H
+	ld	bc,00580H
+	ldir
+	call	0C000H		; Sound init
+
+	ret
+
+calslt:
+	jp	(ix)

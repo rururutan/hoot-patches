@@ -1,0 +1,75 @@
+; Tir-nan-og (c)SystemSoft
+;
+; @autor RuRuRu
+; @date 2010/04/26 1st Release
+;
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	09a00h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	09006h
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+	ei
+
+	call	09003h
+
+	jr	loop
+
+stop:
+	call	09006h
+
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(001Ch), a
+	ld	hl, calslt
+	ld	(001Dh), hl
+
+	in	a,(05h)		; デバイス取得(01:opll 02:msxa 04:sfg-01)
+	and	01h
+	jp	z,devpsg
+	ld	a, 0FFh
+	jp	setdev
+devpsg:
+	ld	a, 000h
+setdev:
+	ld	(0901Bh),a
+
+	call 	09018h
+
+	ld	a, 0C9h
+	ld	(0991Eh),a
+
+	ld	hl,mdata
+	call	0900Ch
+
+	ret
+
+calslt:
+	jp	(ix)
+

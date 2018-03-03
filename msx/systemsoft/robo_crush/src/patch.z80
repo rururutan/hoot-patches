@@ -1,0 +1,126 @@
+; Robo Crush (c)SystemSoft
+;
+; @autor RuRuRu
+; @date 2010/04/26 1st Release
+;
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	08c00h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	09B06h
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+	ei
+
+	ld	(09B1Fh),a
+
+	xor	a
+	call	09B03h
+
+	jr	loop
+
+stop:
+	call	09B06h
+
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(001Ch), a
+	ld	(0038h), a
+	ld	(0093h), a
+
+	ld	hl, calslt
+	ld	(001Dh), hl
+
+	ld	hl, timer
+	ld	(0039h), hl
+
+	ld	hl, psgw
+	ld	(0094h), hl
+
+	in	a,(05h)		; デバイス取得(01:opll 02:msxa 04:sfg-01)
+	and	01h
+	jp	nz,devpsg
+	ld	a, 088h
+	jp	setdev
+devpsg:
+	ld	a, 000h
+setdev:
+	ld	(09B1Fh),a
+
+	call 	09B18h
+
+	ld	a, 0C9h
+	ld	(0A474h),a
+
+	ld	hl,mdata
+	xor	a
+	call	09B0Ch
+
+	ret
+
+calslt:
+	jp	(ix)
+
+psgw:
+	di
+	out     (0A0h),a
+	push    af
+	ld      a,e
+	out     (0A1h),a
+	ei
+	pop     af
+	ret
+
+timer:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	0FD9Fh
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret

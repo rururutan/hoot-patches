@@ -1,0 +1,140 @@
+; 冒険浪漫 (c)SystemSoft
+;
+; @autor RuRuRu
+; @date 2010/09/14 1st Release
+; @date 2014/03/18 Add SE support
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f800h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a, (05h)
+	cp	01h
+	jr	z,play_se
+
+	call	0B965h		; Stop
+
+	in	a, (04h)
+	ld	(flg_loop),a
+
+	di
+
+	ld	a, 01h
+	ld	(flg_play),a
+
+	in	a, (03h)
+	ld	(flg_code),a
+	ld	de, play_end
+play:
+	push	de
+	ld	a,(flg_code)		; Code No.
+play2:
+	add	a,a
+	ld	e,a
+	ld	d,000H
+	ld	hl,mustbl
+	add	hl,de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ex	de,hl
+	jp	(hl)
+
+play_se:
+	ld	a, 01h
+	ld	(flg_play),a
+	in	a, (03h)
+	ld	de, play_end
+	push	de
+	jr	play2
+
+stop:
+	di
+	xor	a
+	ld	(flg_play),a
+	call	0B965h		; Stop
+
+play_end:
+	ei
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	call	0B040h		; init
+
+	ld	a, 07h		; play ch (1+2+4)
+	ld	(0EF00h),a
+
+	ret
+
+irq:
+	ld	hl, flg_play
+	ld	a, (hl)
+	cp	00h
+	ret	z
+
+	call	04053h
+
+	ld	hl, flg_loop
+	ld	a, (hl)
+	cp	00h
+	ret	z
+
+	ld	de, irq_end
+	ld	a,(0EF00H)
+	or	a
+	jr	z, play
+irq_end:
+	ret
+
+flg_code:
+	db	00h
+flg_play:
+	db	00h
+flg_loop:
+	db	00h
+
+mustbl:
+	dw	0B0D9h
+	dw	0B146h
+	dw	0B289h
+	dw	0B3AAh
+	dw	0B4A3h
+	dw	0B618h
+	dw	0B689h
+	dw	0B6A2h
+	dw	0B7E7h
+;9
+	dw	0B058h
+	dw	0B067h
+	dw	0B076h
+	dw	0B083h
+	dw	0B08Fh
+	dw	0B0A2h
+	dw	0B0AEh
+	dw	0B0BCh
+	dw	0B0C8h
+	dw	00000h
