@@ -1,0 +1,63 @@
+; 原宿アフターダーク (c)Kogado
+;
+; @autor RuRuRu
+; @date 2010/04/13 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(03h)
+	cp	00h
+	jr	nz, ending
+
+	call	0C800h
+	jp	play_end
+
+ending:
+	call	0C803h
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+stop:
+	di
+;	ld	a, 01h
+;	ld	(0C95Dh), a
+	call	090h
+	di
+
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+; timer entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 0C95Eh
+	ld	(0FDA0h), hl
+
+	ret

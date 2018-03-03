@@ -1,0 +1,61 @@
+; アルギースの翼 (c)Kogado
+;
+; @autor RuRuRu
+; @date 2010/08/26 1st Release
+;
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0b000h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+
+	di
+	ld	a, 02h		; stop
+	call	0D009h
+
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+
+	xor	a		; init
+	call	0D009h
+	ei
+
+	ld	h, 00h
+	in	a,(04h)
+	ld	l, a		; sub index
+	ld	a, 04h		; play
+	call	0D009h
+
+	jr	loop
+
+stop:
+	ld	a, 02h		; stop
+	call	0D009h
+
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	xor	a		; init
+	call	0D009h
+	ret
+

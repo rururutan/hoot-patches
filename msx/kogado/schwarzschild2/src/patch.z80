@@ -1,0 +1,67 @@
+; Schwarzschild2 (c)Kogado
+;
+; @autor RuRuRu
+; @date 2010/07/09 1st Release
+;
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0a000h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+;	ld	a, 05h
+;	call	0B496h		; API
+
+	di
+	in	a, (03h)
+	out	(03h), a
+	ei
+
+	ld	a , 04h		; Play
+	ld	c, 04h
+	in	l, (c)
+	call	0B496h		; API
+
+	ld	a, 01h		; Key on
+	ld	hl, 0000h
+	call	0B496h		; API
+
+	jr	loop
+
+stop:
+	ei
+	ld	a, 05h		; Stop
+	call	0B496h		; API
+
+	ld	a, 01h		; Key off
+	ld	hl, 0FFFFh
+	call	0B496h		; API
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	xor	a
+	call	0B496h		; API
+
+	ret
+
