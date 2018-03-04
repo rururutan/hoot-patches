@@ -1,0 +1,16 @@
+md mus
+cd mus
+
+rem CB52
+bcut ..\P4_SCR.dsk DRIVER.BIN 0x029c7 0x1000
+rem D213
+bcut ..\P4_SCR.dsk DATA1.BIN 0x039000 0x0400
+bcut ..\P4_SCR.dsk DATA2.BIN 0x039400 0x0200
+bcut ..\P4_SCR.dsk DATA3.BIN 0x039600 0x0400
+bcut ..\P4_SCR.dsk DATA4.BIN 0x039a00 0x0400
+bcut ..\P4_SCR.dsk DATA5.BIN 0x039e00 0x0200
+bcut ..\P4_SCR.dsk DATA6.BIN 0x03a000 0x0400
+bcut ..\P4_SCR.dsk DATA7.BIN 0x03a400 0x0400
+
+
+cd ..
