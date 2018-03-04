@@ -1,12 +1,13 @@
-; ‹â‰Í‰p—Y“`à (c)Bothtec —p
-; ƒƒCƒ“ƒ‹[ƒ`ƒ“
+; éŠ€æ²³è‹±é›„ä¼èª¬ (c)Bothtec
+;
+; @autor RuRuRu
+; @date 2011/04/02 1st Release
+;
 
 	cseg
 	org	00400h
 
-stack:	equ	0f380h		; ƒXƒ^ƒbƒNƒGƒŠƒA
-
-; ƒƒCƒ“ƒ‹[ƒv
+stack:	equ	0f380h		; ã‚¹ã‚¿ãƒƒã‚¯ã‚¨ãƒªã‚¢
 
 main:
 	di
@@ -16,7 +17,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; ƒL[“ü—Í‘Ò‚¿
+	in	a,(02h)		; ã‚­ãƒ¼å…¥åŠ›å¾…ã¡
 	or	a
 	jr	z,loop
 
@@ -65,7 +66,7 @@ play_stop:
 	ret
 
 play_end:
-	xor	a		; hoot status•ÏX
+	xor	a		; hoot statuså¤‰æ›´
 	out	(02h),a
 	jr	loop
 

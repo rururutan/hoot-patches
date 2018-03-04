@@ -1,12 +1,13 @@
-; Topple Zip MSX2 (c)Bothtec 用 (CRC32:96b33497)
-; メインルーチン
+; Topple Zip(MSX2) (c)Bothtec (CRC32:96b33497)
+;
+; @autor RuRuRu
+; @date 2017/01/05 1st Release
+;
 
 	cseg
 	org	0400h
 
 stack:	equ	0f380h		; スタックエリア
-
-; メインループ
 
 main:
 	di

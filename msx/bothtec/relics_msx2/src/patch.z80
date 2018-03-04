@@ -1,13 +1,12 @@
-; Relics for MSX2 (c)Borthtec hoot用演奏ルーチン
-; (C) RuRuRu
-; 2017/05/23 1st Release
+; Relics(MSX2) (c)Borthtec (CRC32:babc68f2)
+;
+; @autor RuRuRu
+; @date 2017/05/23 1st Release
 
 	cseg
 	org	0400h
 
 stack:	equ	0f100h		; スタックエリア
-
-; メインループ
 
 main:
 	di

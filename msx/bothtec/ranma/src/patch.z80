@@ -1,12 +1,13 @@
-; らんま1/2 (c)Bothtec 用
-; メインルーチン
+; 繧峨ｓ縺ｾ1/2 (c)Bothtec
+;
+; @autor RuRuRu
+; @date 2017/01/26 1st Release
+;
 
 	cseg
 	org	00400h
 
-stack:	equ	0f380h		; スタックエリア
-
-; メインループ
+stack:	equ	0f380h		; 繧ｹ繧ｿ繝�繧ｯ繧ｨ繝ｪ繧｢
 
 main:
 	di
@@ -16,7 +17,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; 繧ｭ繝ｼ蜈･蜉帛ｾ�縺｡
 	or	a
 	jr	z,loop
 
@@ -32,7 +33,7 @@ loop:
 	ei
 
 	ld	d, 00h		; 00:loop 01:no-loop
-	ld	e, 00h		; 要調査
+	ld	e, 00h		; 隕∬ｪｿ譟ｻ
 	call	088B8h
 	jr	play_end
 
@@ -41,7 +42,7 @@ play_stop:
 	ret
 
 play_end:
-	xor	a		; hoot status変更
+	xor	a		; hoot status螟画峩
 	out	(02h),a
 	jr	loop
 

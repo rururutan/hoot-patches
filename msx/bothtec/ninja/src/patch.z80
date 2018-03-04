@@ -1,13 +1,14 @@
-; Ninja (c)Bothtec —p
-; ƒƒCƒ“ƒ‹[ƒ`ƒ“
+; å¿è€… (c)Bothtec
+;
+; @autor RuRuRu
+; @date 2010/11/21 1st Release
+;
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; ƒXƒ^ƒbƒNƒGƒŠƒA
-mdata:	equ	08900h		; ‹Èƒf[ƒ^ƒAƒhƒŒƒX
-
-; ƒƒCƒ“ƒ‹[ƒv
+stack:	equ	0f380h		; ã‚¹ã‚¿ãƒƒã‚¯ã‚¨ãƒªã‚¢
+mdata:	equ	08900h		; æ›²ãƒ‡ãƒ¼ã‚¿ã‚¢ãƒ‰ãƒ¬ã‚¹
 
 main:
 	di
@@ -18,7 +19,7 @@ main:
 	jp	loop
 
 loop:
-	in	a, (02h)	; ƒL[“ü—Í‘Ò‚¿
+	in	a, (02h)	; ã‚­ãƒ¼å…¥åŠ›å¾…ã¡
 	or	a
 	jr	z, loop
 
@@ -71,7 +72,7 @@ stop:
 	ei
 
 play_end:
-	xor	a		; ’âŽ~ˆ—
+	xor	a		; åœæ­¢å‡¦ç†
 	out	(02h), a
 	jr	loop
 

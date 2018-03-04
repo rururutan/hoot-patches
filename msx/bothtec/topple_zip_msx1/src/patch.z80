@@ -1,12 +1,14 @@
-; Topple Zip (c)Bothec 用
-; メインルーチン
+; Topple Zip(MSX1) (c)Bothec (CRC32:190f4ce5)
+;
+; @autor RuRuRu
+; @date 2014/02/01 1st Release
+; @date 2017/01/05 Support SE
+;
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
-
-; メインループ
+stack:	equ	0f380h		; 繧ｹ繧ｿ繝�繧ｯ繧ｨ繝ｪ繧｢
 
 main:
 	di
@@ -16,7 +18,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; 繧ｭ繝ｼ蜈･蜉帛ｾ�縺｡
 	or	a
 	jr	z,loop
 
@@ -82,7 +84,7 @@ stop:
 	ei
 
 play_end:
-	xor	a		; hoot status変更
+	xor	a		; hoot status螟画峩
 	out	(02h),a
 	jr	loop
 

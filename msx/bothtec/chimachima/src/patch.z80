@@ -1,12 +1,13 @@
-; ChimaChima (c)Bothec 用
-; メインルーチン
+; 螯匁ｪ謗｢蛛ｵ縺｡縺ｾ縺｡縺ｾ (c)Bothtec (CRC32:8d636963)
+;
+; @autor RuRuRu
+; @date 2010/10/01 1st Release
+;
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
-
-; メインループ
+stack:	equ	0f380h		; 繧ｹ繧ｿ繝�繧ｯ繧ｨ繝ｪ繧｢
 
 main:
 	di
@@ -16,7 +17,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; 繧ｭ繝ｼ蜈･蜉帛ｾ�縺｡
 	or	a
 	jr	z,loop
 
@@ -76,7 +77,7 @@ stop:
 	call	play_stop
 
 play_end:
-	xor	a		; hoot status変更
+	xor	a		; hoot status螟画峩
 	out	(02h),a
 	jr	loop
 
