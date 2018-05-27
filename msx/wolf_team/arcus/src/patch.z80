@@ -1,0 +1,93 @@
+; Arcus for MSX2 (c)Wolf Team
+;
+; @autor RuRuRu
+; @date 2010/09/02 1st Release
+;
+; Sound Mode : 広場でSelect + F5
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0a000h		; 曲データアドレス
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp, stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a, (02h)	; キー入力待ち
+	or	a
+	jr	z, loop
+
+	cp	01h
+	jr	nz, stop
+
+	di
+	call	08157h
+
+	in	a, (03h)
+	out	(03h), a	; 曲データを読み込む
+	call	08154h
+
+	in	a, (07h)
+	cp	01h
+	jr	nz, load_end
+	ld	a, 00h
+	ld	(0899Eh), a
+load_end:
+	ei
+
+	jr	loop
+
+stop:
+	di
+	call	08157h
+	ei
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h), a
+	jr	loop
+
+init:
+	call	0810Ch		; IRQ set
+
+	ld	hl, mdata
+	ld	(07066h), hl
+
+	in	a, (07h)
+	cp	01h
+	jr	nz, init_end
+
+	ld	b, 08h
+	ld	e, 00h
+	ld	hl,tonedat
+tone_loop:
+	ld	d,(hl)
+	call	opllwrt
+	inc	hl
+	inc	e
+	djnz	tone_loop
+
+	ld	a,007H		; Total channel
+	ld	(07068H),a
+
+init_end:
+	ret
+
+opllwrt:
+	ld	a,e
+	out	(07Ch),a
+	ld	a,d
+	out	(07Dh),a
+	ret
+
+tonedat:
+	db	011h,011h,020h,020h,0ffh,0b2h,0f4h,0f4h

@@ -1,0 +1,62 @@
+; Niko2 for MSX2 (c)Wolf Team
+;
+; @autor RuRuRu
+; @date 2010/07/29 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	04000h		; 曲データアドレス
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp, stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a, (02h)	; キー入力待ち
+	or	a
+	jr	z, loop
+
+	cp	01h
+	jr	nz, stop
+
+	call	0CC03h
+
+	di
+	in	a, (03h)
+	out	(03h), a	; 曲データを読み込む
+	call	0CC00h
+	ei
+
+	in	a, (04h)
+	ld	(0CC09h), a	; Loop
+
+	jr	loop
+
+stop:
+	di
+	call	0CC03h
+	ei
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h), a
+	jr	loop
+
+init:
+	in	a, (07h)
+	ld	(0CC06h), a	; OPLL flag
+
+	ld	hl, mdata
+	ld	(0CC07h), hl
+
+	ret
+
