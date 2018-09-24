@@ -1,0 +1,88 @@
+; 死霊戦線 (c)Victor
+;
+; @autor RuRuRu
+; @date 2010/09/15 1st Release
+
+	cseg
+	org	0f800h
+
+stack:	equ	04000h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	di
+	in	a,(03h)		; Code No.
+	call	00BD1H
+	ei
+	jr	play_end
+
+stop:
+	di
+	call	00A39H
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	hl,08000H
+	ld	de,00000H
+	ld	bc,03e00H
+	ldir
+
+	ld	a, 0c3h
+	ld	(0038h), a
+	ld	hl, irq
+	ld	(0039h), hl
+
+	call	00A39H
+
+	ret
+
+irq:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	008D7H
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret

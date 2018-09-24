@@ -1,0 +1,85 @@
+; Nyan Nyan Pro Wrestling (c)Victor
+;
+; @autor RuRuRu
+; @date 2010/10/12 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	ld	a,(flglp)
+	cp	01h
+	jr	nz, mainlp
+
+	ld	a, (0E2BCh)
+	or	a
+	call	z, setloop
+
+mainlp:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+	call	play_stop
+
+	in	a, (05h)
+	ld	(flglp), a	; Loop flag
+
+	in	a, (03h)	; Code No.
+	ld	(codeno),a
+	call	06403h
+	jr	play_end
+
+play_se:
+	in	a, (03h)	; Code No.
+	call	06400h
+	jr	play_end
+
+play_stop:
+	xor	a
+	ld	(flglp), a
+	call	06403h
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+setloop:
+	ld	a, (codeno)
+	call	06403h
+	ret
+
+init:
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, 06406h
+	ld	(0FDA0h),hl
+	ret
+
+flglp:
+	db	00h
+codeno:
+	db	00h

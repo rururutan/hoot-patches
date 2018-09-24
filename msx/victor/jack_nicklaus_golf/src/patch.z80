@@ -1,0 +1,87 @@
+; Jack Nicklaus Golf (c)Victor
+;
+; @autor RuRuRu
+; @date 2011/10/17 1st Release
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	06606h
+
+	di
+	in	a, (03h)
+	out	(03h), a
+	ei
+	call	06600h
+	ld	a, 0FFh
+	call	06603h
+
+	jr	loop
+
+stop:
+	call	06606h
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(001Ch), a
+	ld	(0116h), a
+	ld	(0093h), a
+
+	ld	hl, calslt
+	ld	(001Dh), hl
+
+	ld	a, 0C9h			; ret
+	ld	(0111h), a
+
+	ld	hl, psgw
+	ld	(0094h), hl
+
+	in	a, (07h)
+	cp	00
+	jr	nz, init_opll
+; psg
+	ld	a, 00h			; nop
+	ld	(0669fh), a
+	ret
+
+init_opll:
+	ld	a, 00h			; nop
+	ld	(06682h), a
+	ret
+
+calslt:
+	jp	(ix)
+
+psgw:
+	di
+	out     (0A0h),a
+	push    af
+	ld      a,e
+	out     (0A1h),a
+	ei
+	pop     af
+	ret
