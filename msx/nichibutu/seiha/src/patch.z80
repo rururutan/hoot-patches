@@ -1,0 +1,122 @@
+; 制覇 (c)Nichibutu
+;
+; @autor RuRuRu
+; @date 2013/04/14 1st Release
+;
+
+	cseg
+	org	00100h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	di
+	in	a,(03h)		; Code No.
+	call	05EA7h
+	ei
+	jr	play_end
+
+stop:
+	di
+	ld	a, 0FFh
+	call	05EA7h
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c9h
+	ld	(0024h), a
+	ld	(0096h), a
+	ld	(ff01h), a
+	ld	a, 0c3h
+	ld	(001Ch), a
+	ld	(0038h), a
+	ld	(0093h), a
+	ld	hl, calslt
+	ld	(0001Dh), hl
+	ld	hl, irq
+	ld	(00039h), hl
+	ld	hl, psgw
+	ld	(00094h), hl
+
+	ld	hl,0B881h
+	ld	de,0B882h
+	ld	bc,004FEh
+	ld	(hl),000h
+	ldir
+
+	call	05E87h
+
+	ld	a, 01h
+	ld	(0B8E1H),a
+	xor	a
+;	ld	(05E86H),a
+;	ld	(0B8E1H),a
+
+	ld	a, 0FFh
+	call	05EA7h
+	ret
+
+calslt:
+	jp	(ix)
+
+psgw:
+	di
+	out     (0A0h),a
+	push    af
+	ld      a,e
+	out     (0A1h),a
+	ei
+	pop     af
+	ret
+
+irq:
+	di
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	05ED8h
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret
