@@ -1,4 +1,4 @@
-; ��̌��f(MSX2 ROM) (c)KOEI
+; 提督の決断(MSX2 ROM) (c)KOEI
 ;
 ; @autor RuRuRu
 ; @date 2015/09/21 1st Release
@@ -78,7 +78,7 @@ play_psg:
 	ld	(0F207H),a
 
 play_end:
-	xor	a		; hoot status�ύX
+	xor	a		; hoot status変更
 	out	(02h),a
 	ei
 	jr	loop
@@ -171,7 +171,6 @@ init:
 
 init_psg:
 	ld	a, 0C9h
-
 	ld	(0EF4CH),a
 	ld	a,0C3H
 	ld	(0FD9FH),a
