@@ -2,6 +2,7 @@
 ;
 ; @autor RuRuRu
 ; @date 2011/09/08 1st Release
+; @date 2018/10/16 BGM loop
 ;
 
 	cseg
@@ -17,6 +18,9 @@ main:
 	ei
 
 loop:
+	ld	a, (flg_boss)
+	cp	01h
+	call	z,068EBh
 	in	a,(02h)		; キー入力待ち
 	or	a
 	jr	z,loop
@@ -25,11 +29,17 @@ loop:
 	jr	nz,stop
 
 	in	a, (04h)
+	and	01h
 	cp	01h
 	jr	nz, no_stop
 
 	call	play_stop
 	halt
+
+	in	a, (04h)
+	and	02h
+	cp	02h
+	call	z,boss_bgm
 
 no_stop:
 	in	a,(03h)
@@ -45,8 +55,15 @@ play_end:
 	jr	loop
 
 play_stop:
+	xor	a
+	ld	(flg_boss),a
 	ld	a, 09Dh
 	call	06AD3h
+	ret
+
+boss_bgm:
+	ld	a, 01h
+	ld	(flg_boss),a
 	ret
 
 init:
@@ -55,14 +72,24 @@ init:
 	ld	hl, irq
 	ld	(0FDA0h), hl
 
-	ld	a,007H
-	ld	e,0B8H
-	call	00093H
+	ld	a,0B8h
+	call	06B61h
 
 	call	play_stop
+
+	ld	hl, 06AC6h
+	ld	(068F6h),hl	; patch
+
+	ld	a,040h
+	ld	(0E002h),a
+	xor	a
+	ld	(0E1DDh), a
 	ret
 
 irq:
 	di
 	call	06B6Ah
 	ret
+
+flg_boss:
+	db	00h
