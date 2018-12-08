@@ -2,12 +2,12 @@
 ;
 ; @autor RuRuRu
 ; @date 2011/08/29 1st Release
-;
+; @date 2018/10/21 Fixed code 01
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
+stack:	equ	0f380h		; Stack
 
 main:
 	di
@@ -17,7 +17,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; Key wait
 	or	a
 	jr	z,loop
 
@@ -32,25 +32,24 @@ loop:
 	halt
 
 no_stop:
-	di
+	xor	a
+	ld	(0D83Bh),a	; Clear flag for code 01
+
 	in	a,(03h)
-	call	08EC7h
-	ei
+	call	08EB5h
 	jr	play_end
 
 stop:
-	di
 	call	play_stop
-	ei
 
 play_end:
-	xor	a		; hoot status変更
+	xor	a		; Change hoot status
 	out	(02h),a
 	jr	loop
 
 play_stop:
 	ld	a, 02Bh
-	call	08EC7h
+	call	08EB5h
 	ret
 
 init:
@@ -58,6 +57,11 @@ init:
 	ld	(0FD9Fh), a
 	ld	hl, irq
 	ld	(0FDA0h), hl
+
+	ld	a,0B8h
+	call	08F45h
+
+	call	play_stop
 
 	ret
 
