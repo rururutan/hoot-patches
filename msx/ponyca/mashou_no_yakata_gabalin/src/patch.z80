@@ -1,0 +1,66 @@
+; 魔性の館ガバリン (c)Ponyca
+;
+; @autor RuRuRu
+; @date 2011/02/10 1st Release
+;
+
+	cseg
+	org	0e500h
+
+stack:	equ	0f380h		; Stack
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	in	a,(03h)		; Code No.
+	call	05383h
+
+	jr	play_end
+
+play_stop:
+	xor	a
+	call	05383h
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C3h
+	ld	(0000Ch),a
+	ld	hl, rdslt
+	ld	(0000Dh),hl
+
+	ld	a, 0FFh			; init
+	call	05383h
+	ret
+
+rdslt:
+	ld	a, 0D5h			; rom
+	out	(0a8h), a
+	ld	a, (hl)
+	push	af
+	ld	a, 0D7h			; ram
+	out	(0a8h), a
+	pop	af
+	ret
+

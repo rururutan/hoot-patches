@@ -1,0 +1,103 @@
+; Fantasy Zone (c)Ponyca
+;
+; @autor RuRuRu
+; @date 2010/06/14 1st Release
+;
+	cseg
+	org	0400h
+
+stack:	equ	0f300h		; Stack
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+	cp	02h
+	jr	z,play_shop
+	cp	03h
+	jr	z,play_ed
+
+	call	04985h		; Stop
+
+; play
+	in	a,(03h)		; Code No.
+
+	di
+	ld	(0E213h),a	; stage no
+	call	05377h		; load stage bgm
+
+	ld	a, 01h
+	call	04D39h		; Play
+	ei
+	jr	play_end
+
+play_shop:
+	call	04985h		; Stop
+	ld	a, 00CH
+	jr	play_bank
+
+play_ed:
+	call	04985h		; Stop
+	ld	a, 00DH
+play_bank:
+	di
+	ld	(07800H),a
+	ld	hl,0B800H
+	ld	de,0DA00H
+	ld	bc,00800H
+	ldir
+	ld	a, 01h
+	call	04D39h		; Play
+	ei
+	jr	play_end
+
+play_se:
+	in	a,(03h)		; Code No.
+	call	04D39h		; Play
+	jr	play_end
+
+
+stop:
+	di
+	call	04985h		; Stop
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+; init
+	call	04777h		; init
+
+	call	052a5h		; load default bgm
+
+	ret
+
+irq:
+	di
+	call	040B7H
+;	call	0478EH
+	ei
+	ret

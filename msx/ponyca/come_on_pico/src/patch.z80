@@ -1,0 +1,90 @@
+; Come On! Picot (c)Ponyca
+;
+; @autor RuRuRu
+; @date 2010/12/22 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; Stack
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a, (04h)
+	cp	01h
+	jr	z, play_se
+
+	call	play_stop
+
+	xor	a
+	ld	(ply_flag),a
+
+	in	a,(03h)		; Code No.
+	ld	(0EC1CH),a
+
+	
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+play_stop:
+	ld	a, 001h
+	ld	(ply_flag),a
+	call	00090h
+	ret
+
+play_se:
+	in	a,(03h)		; Code No.
+	call	0040A5h
+	jr	play_end
+
+stop:
+	call	play_stop
+	jr	play_end
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	call	09D03h
+	ret
+
+irq:
+	ld	a, (ply_flag)
+	cp	01h
+	jr	z, irq_end
+
+	ld	a, (irq_cnt)
+	inc	a
+	ld	(irq_cnt), a
+	cp	05h		; @todo 要調整
+	jp	c, irq_end
+
+	xor	a
+	ld	(irq_cnt), a
+	call	09D74H		; Sound IRQ
+irq_end:
+	ret
+
+ply_flag:
+	db	00h
+irq_cnt:
+	db	00h

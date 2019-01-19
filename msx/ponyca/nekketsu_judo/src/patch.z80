@@ -1,0 +1,113 @@
+; 熱血柔道 (c)Ponyca
+;
+; @autor RuRuRu
+; @date 2010/03/19 1st Release
+; @date 2012/11/28 Add S.E. support
+;
+; @memo OPLL検索ルーチンがバグっておりOPLLが選択されない場合がある
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a,(04h)		; Loop limit
+	cp	02h
+	jr	z,play_se
+
+	di
+	ld	d,a
+	in	a,(03h)		; Code No.
+	ld	e,a
+	ld	a, 02h
+	call	0465Ch
+	ei
+	jr	play_end
+
+play_se:
+	in	a,(03h)
+	ld	(0C023h), a
+	jr	play_end
+
+stop:
+	di
+	ld	de,00000h
+	ld	a, 04h
+	call	0465Ch
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c9h
+	ld	(0024h), a
+	ld	a, 0c3h
+	ld	(001Ch), a
+	ld	(0FD9Fh), a
+	ld	hl, 046AFh
+	ld	(0FDA0h), hl
+	ld	hl, calslt
+	ld	(0001Dh), hl
+
+;slot mapping
+	ld	a, 013h
+	out	(0A8h), a
+	ld	a, 04h
+	ld	(0FFFFh), a
+	ld	a, 0D7h
+	out	(0A8h), a
+
+	in	a, (07h)
+	cp	01h
+	jr	nz, psgdev
+
+;oplldev
+	ld	(0D872h), a	; opll flag
+
+	ld	hl,0D7C0h
+	call	04252h
+
+psgdev:
+	call	04072h
+	ret
+
+calslt:
+	di
+	push	af
+	push	bc
+	push	af
+	ld	a, 0D3h		; RAM/FM/ROM/RAM
+	out	(0A8h), a
+	pop	af
+	push	hl
+	ld	hl, end_calslt
+	push	hl
+	pop	bc
+	pop	hl
+	push	bc
+	jp	(ix)
+end_calslt:
+	ld	a, 0D7h		; RAM/ROM/ROM/RAM
+	out	(0A8h), a
+	pop	bc
+	pop	af
+	ret
