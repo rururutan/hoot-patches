@@ -1,0 +1,69 @@
+; ルパン三世 カリオストロの城 (c)Toho
+;
+; @autor RuRuRu
+; @date 2010/03/16 1st Release
+; @date 2015/03/30 Add 9bit code support
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0C140h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)		; Code
+	cp	01h
+	call	z,09B71h	; Stop
+
+; play
+	in	a,(03h)		; Code
+	call	045beh		; Play
+	ei
+
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+stop:
+	call	09B71h
+
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+; bank change
+	ld	a, 01h
+	ld	(6800h), a
+	ld	a, 02h
+	ld	(7000h), a
+
+	ld	a, 0fh
+	ld	(0E1A4h), a
+
+; entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 09C13h
+	ld	(0FDA0h), hl
+
+	call	09B71h
+	call	045CFH
+	ld	hl,0B000H
+	call	09B68H
+	ret
+
