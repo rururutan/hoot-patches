@@ -1,0 +1,76 @@
+; マスク狂時代battle (c)徳間書店
+;
+; @autor RuRuRu
+; @date 2012/11/28 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f300h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	di
+
+	in	a, (03h)	; Code No.
+	out	(03h),a
+
+	in	a, (04h)	; Sub Code
+	ld	hl, 07000h
+	call	04806h
+
+	ei
+	jr	play_end
+
+stop:
+	di
+	call	04809h
+	ei
+
+play_end:
+	xor	a		; Change status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	hl,05448h	; 'HT'
+	ld	(04000h), hl
+
+	ld	a, 0C9h		; ret patch
+	ld	(04083h), hl
+
+	ld	a,03h
+	ld	(0F342h),a	; RAMAD1(最新版hootでは不要)
+
+	call	0C000h		; init
+
+	ld	hl,0c300h
+	ld	(04836h), hl	; IRQ書き換え
+
+	in	a,(07h)
+	cp	01h
+	jr	nz,psgdev
+
+	ld	a,0FFh
+	ld	(04893h),a	; 最新版hootでは不要
+	ld	a,01h
+	call	04821h		; MMODE
+
+psgdev:
+
+	ret

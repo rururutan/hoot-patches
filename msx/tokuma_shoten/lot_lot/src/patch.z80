@@ -1,0 +1,86 @@
+; Lot Lot (c)Technopolis Soft
+;
+; @autor RuRuRu
+; @date 2011/10/13 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	di
+	in	a,(03h)
+	add	a,a		; x2
+	ld	c, a
+	add	a,a		; x4
+	add	a,c		; x6
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+
+	ld	de, sound_addr
+	ld	bc, 06h
+	ldir
+
+	call	0A04Ah		; Sound Req
+sound_addr:
+	dw	0000h
+	dw	0000h
+	dw	0000h
+	ei
+	jr	play_end
+
+stop:
+	di
+	ld	a, 0FFh
+	ld	(0CB4Fh),a
+	call	090h
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ret
+
+mustbl:
+	dw	0A1C5h
+	dw	0A1DEh
+	dw	0A206h
+
+	dw	0A12Eh
+	dw	0A174h
+	dw	0A198h
+
+	dw	0A37Eh
+	dw	0A397h
+	dw	0A3B4h
+
+	dw	0A33Bh
+	dw	0A34Eh
+	dw	0A361h
+
+	dw	0A3D4h
+	dw	0A3FDh
+	dw	0A3FDh
+
