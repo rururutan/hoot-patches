@@ -1,3 +1,3 @@
-xasm /b400 patch.z80
+xasm /be000 patch.z80
 del patch
 ren patch.bin patch
