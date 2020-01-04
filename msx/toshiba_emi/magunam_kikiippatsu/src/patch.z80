@@ -1,0 +1,65 @@
+; マグナム危機一髪 (c)Toshiba-EMI
+;
+; @autor RuRuRu
+; @date 2014/10/06 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(03h)		; Code No.
+	ld	(0E0F3H),a
+
+play_end:
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+play_stop:
+	ld	a, 080h
+	ld	(0E0F3H),a
+	ret
+
+stop:
+	call	play_stop
+
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C9h
+	ld	(0FD9Ah), a
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ld	a,080H
+	ld	a,(0E005H)
+
+	call	play_stop
+
+	ret
+
+irq:
+	call	0473Dh		; IRQ
+	call	0618FH		; Sound main
+	ret
