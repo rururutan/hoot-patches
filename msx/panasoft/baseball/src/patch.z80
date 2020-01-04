@@ -1,0 +1,159 @@
+; パナソフトのベースボール (c)Panasoft
+;
+; @autor RuRuRu
+; @date 2010/12/22 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f370h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	di
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	b, a
+	add	a, a		; x4
+	add	a, b		; x6
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	xor	a
+	ld	c, a
+	ld	b, 03h
+pllp:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	a,d
+	cp	00h
+	jr	z,ignr
+	push	bc
+	push	hl
+	ld	b, c
+	call	0B9EAh
+	pop	hl
+	pop	bc
+ignr:
+	inc	c
+	djnz	pllp
+
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	0BA11h
+	ret
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ret
+
+irq:
+	call	0BA4Ch
+	ret
+
+mustbl:
+	dw	0B652h		; ok
+	dw	0B68Fh
+	dw	0B6C9h
+
+	dw	0B706h		; ok
+	dw	0B731h
+	dw	0B750h
+
+	dw	0B7F8h		; ok
+	dw	0B8FFh
+	dw	0B87Dh
+
+	dw	0B77Eh		; ok
+	dw	0B7BBh
+	dw	00000h
+
+	dw	0B991h		; ok
+	dw	0B99Bh
+	dw	00000h
+
+	dw	0B849h		; ok
+	dw	00000h
+	dw	0B8CBh
+
+	dw	0B9C9h		; ok
+	dw	00000h
+	dw	00000h
+
+	dw	0B96Eh		; ok
+	dw	00000h
+	dw	00000h
+
+	dw	0B97Eh		; ok
+	dw	00000h
+	dw	00000h
+
+	dw	0B94Dh		; ok
+	dw	00000h
+	dw	00000h
+
+	dw	0B957h		; ok
+	dw	0B961h
+	dw	00000h
+
+	dw	0B9A2h		; ok
+	dw	0B9BFh
+	dw	00000h
+
+	dw	00000h		; ok
+	dw	0B9E3h
+	dw	00000h
+
+	dw	00000h		; ok
+	dw	00000h
+	dw	0B9B2h
+
+	dw	0B9A2h		; ok
+	dw	0B9D6h
+	dw	00000h
+
+	dw	00000h		; ok
+	dw	00000h
+	dw	0B921h
+
+	dw	00000h		; ok
+	dw	00000h
+	dw	0B934h
+
+	dw	00000h		; ok
+	dw	0B960h
+	dw	0B9B2h

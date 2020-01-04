@@ -1,0 +1,167 @@
+; パナソフトのベースボールII (c)Panasoft
+;
+; @autor RuRuRu
+; @date 2010/12/22 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f370h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	di
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	b, a
+	add	a, a		; x4
+	add	a, b		; x6
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	xor	a
+	ld	c, a
+	ld	b, 03h
+pllp:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	a,d
+	cp	00h
+	jr	z,ignr
+	push	bc
+	push	hl
+	ld	b, c
+	call	081A5h
+	pop	hl
+	pop	bc
+ignr:
+	inc	c
+	djnz	pllp
+
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	081CCh
+	ret
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ret
+
+irq:
+	call	08207h
+	ret
+
+mustbl:
+	dw	8499h		; ok
+	dw	84D6h
+	dw	0000h
+
+	dw	850Dh		; ok
+	dw	8532h
+	dw	0000h
+
+	dw	0000h		; ok
+	dw	0000h
+	dw	8607h
+
+	dw	85EBh		; ok
+	dw	0000h
+	dw	0000h
+
+	dw	8677h		; ok
+	dw	8681h
+	dw	0000h
+
+	dw	9513h		; ok
+	dw	0000h
+	dw	0000h
+
+	dw	0000h		; ok
+	dw	86AFh
+	dw	0000h
+
+	dw	856Dh		; ok
+	dw	859Eh
+	dw	85CFh
+
+	dw	8688h		; ok
+	dw	86AFh
+	dw	0000h
+
+	dw	0000h		; ok
+	dw	8646h
+	dw	8698h
+
+	dw	8654h		; ok
+	dw	0000h
+	dw	0000h
+
+	dw	8664h		; ok
+	dw	0000h
+	dw	0000h
+
+	dw	8554h		; ok
+	dw	0000h
+	dw	0000h
+
+	dw	8633h		; ok
+	dw	0000h
+	dw	0000h
+
+	dw	0000h		; ok
+	dw	0000h
+	dw	85CFh
+
+	dw	863Dh		; ok
+	dw	8647h
+	dw	0000h
+
+	dw	8688h		; ok
+	dw	86A5h
+	dw	0000h
+
+	dw	0000h		; ok
+	dw	86BCh
+	dw	0000h
+
+	dw	0000h		; ok
+	dw	0000h
+	dw	8698h
+
+	dw	0000h		; ok
+	dw	0000h
+	dw	861Ah

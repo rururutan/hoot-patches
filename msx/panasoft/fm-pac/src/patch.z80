@@ -1,0 +1,73 @@
+; FM-PAC sample曲 (c)Panasoft
+; 本来は専用マッパーだけどASCII16を使用
+;
+; @autor RuRuRu
+; @date 2012/11/27 1st Release
+;
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	04119h		; Stop
+
+; play
+	in	a,(03h)		; Code No.
+	add	a,a
+	ld	e,a
+	ld	d,000H
+	ld	hl,mustbl
+	add	hl,de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ex	de,hl
+	xor	a
+	call	04116h
+	jp	play_end
+
+stop:
+	di
+	call	04119h
+
+play_end:
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 0411Fh
+	ld	(0FDA0h), hl
+
+	ld	hl,03000H
+	call	04113H		; INIOPL
+
+	ld	a, 02h
+	ld	(07000h), a	; bank
+
+	ret
+
+mustbl:
+	dw	0808Ch
+	dw	0878Eh
+	dw	09910h
+	dw	09B92h
+	dw	0A614h
+	dw	00000h
