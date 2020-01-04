@@ -1,0 +1,78 @@
+; Konami's Golf(CRC32:08c7e406)
+;
+; @autor RuRuRu
+; @date 2018/12/16 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0E400h		; Stack
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a, (04h)
+	cp	01h
+	jr	nz, no_stop
+
+	call	play_stop
+	halt
+
+no_stop:
+	in	a,(03h)
+	cp	01h
+	jr	nz, play
+
+	push	af
+	xor	a
+	ld	(0E650h),a	; SE 01 flag clear
+	pop	af
+	jr	play
+
+play:
+	call	072C0h
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Chagne hoot status
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	ld	a, 08Dh
+	call	072C0h
+	ret
+
+init:
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ld	a,0B8h
+	ld	(0E660h), a
+	call	07350h		; reg7 init
+
+	call	play_stop
+	ret
+
+irq:
+	call	07359h
+	ret
+
