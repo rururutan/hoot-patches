@@ -1,0 +1,283 @@
+; 死体置場で夕食を (c)Tokuma Shoten
+;
+; @autor RuRuRu
+; @date 2020/01/13 1st Release
+
+	cseg
+	org	06900h
+
+stack:	equ	0F380h		; Stack
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	ld	hl, play1
+	push	hl
+
+	in	a,(03h)
+	out	(03h),a
+	add	a, a	; x2
+	add	a, a	; x4
+	add	a, a	; x8
+	ld	e, a
+	ld	d, 00h
+	ld	hl, func_tbl
+	add	hl, de
+	ld	(curt_ptr), hl
+	push	hl
+	pop	ix
+	ld	l, (ix)
+	ld	h, (ix+01)
+	jp	(hl)	; map driver
+
+play1:
+	ld	hl, play2
+	push	hl
+
+	ld	hl, (curt_ptr)
+	push	hl
+	pop	ix
+	in	a,(04h)
+	ld	l, (ix+02)
+	ld	h, (ix+03)
+	jp	(hl)	; load data
+
+play2:
+	ld	hl, (curt_ptr)
+	push	hl
+	pop	ix
+	ld	hl, play_end
+	push	hl
+	ld	l, (ix+04)
+	ld	h, (ix+05)
+	jp	(hl)	; play
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Chagne hoot status
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	di
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	ei
+
+	ld	hl, (curt_ptr)
+	push	hl
+	pop	ix
+	ld	hl, stop_end
+	push	hl
+	ld	l, (ix+06)
+	ld	h, (ix+07)
+	xor	a
+	jp	(hl)	; play
+stop_end:
+	ret
+
+init:
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	ld	a, 0C3h
+	ld	(0001Ch), a
+	ld	(00038h), a
+	ld	(00093h), a
+	ld	hl, calslt
+	ld	(0001Dh), hl
+	ld	hl, irq
+	ld	(00039h), hl
+	ld	hl, psgw
+	ld	(00094h), hl
+
+	ret
+
+calslt:
+	jp	(ix)
+
+psgw:
+	di
+	out     (0A0h),a
+	push    af
+	ld      a,e
+	out     (0A1h),a
+	ei
+	pop     af
+	ret
+
+irq:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	di
+	in	a,(099h)
+	or	a
+	jp	p,int_end
+	call	0FD9Fh
+	ei
+int_end:
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+dummy:
+	ret
+
+curt_ptr:
+	dw	func_tbl
+
+func_tbl:
+	; Map, Load data, Start, Stop
+	dw	0126Dh	; COMMAND.COM
+	dw	0CD3Ah
+	dw	0CE12h
+	dw	0CCD6h
+
+	dw	00F4Bh	; OD000001.010
+	dw	0CFD9h
+	dw	0D0AFh
+	dw	0CF75h
+
+	dw	0333Dh	; OD000002.010
+	dw	01ADCh
+	dw	0CFE5h
+	dw	0CEB1h
+
+	dw	02C8Eh	; OD000012.010
+	dw	0D1D7h
+	dw	0D2ADh
+	dw	0D173h
+
+	dw	00DC5h	; OD000021.010
+	dw	00DA8h
+	dw	0D058h
+	dw	0CF24h
+
+	dw	02E3Ch	; OD000022.010
+	dw	015F1h
+	dw	0CD17h
+	dw	0CBE3h
+
+	dw	01134h	; OD000023.010
+	dw	0110Bh
+	dw	0D1E5h
+	dw	0D0B1h
+
+	dw	00ED6h	; OP000000.010
+	dw	0CD3Ah
+	dw	0CE12h
+	dw	0CCD6h
+
+	dw	010E3h	; SP000001.010
+	dw	00603h
+	dw	0D1C3h
+	dw	0D08Fh
+
+	dw	04322h	; SP000002.010
+	dw	028F1h
+	dw	0D11Ch
+	dw	0CFE8h
+
+	dw	00DC0h	; FS000001.010
+	dw	00D9Fh
+	dw	0D22Eh
+	dw	0D0FAh
+
+	dw	0458Fh	; FS000002.010
+	dw	02A9Eh
+	dw	0D227h
+	dw	0D0F3h
+
+	dw	00D9Ah	; FS000011.010
+	dw	00D7Dh
+	dw	0D184h
+	dw	0D050h
+
+	dw	048B1h	; FS000012.010
+	dw	02B82h
+	dw	0D222h
+	dw	0D0EEh
+
+	dw	00C97h	; ME000001.010
+	dw	0CB6Dh
+	dw	0CC43h
+	dw	0CB09h
+
+	dw	0477Eh	; ME000002.010
+	dw	029F7h
+	dw	0D1EEh
+	dw	0D0BAh
+
+	dw	00BBAh	; ME000011.010
+	dw	0CBD6h
+	dw	0CCACh
+	dw	0CB72h
+
+	dw	042CDh	; ME000012.010
+	dw	02620h
+	dw	0CC56h
+	dw	0CB22h
+
+	dw	01027h	; CO000001.010
+	dw	0CD25h
+	dw	0CDFBh
+	dw	0CCC1h
+
+	dw	0116Dh	; DE000001.010
+	dw	004BEh
+	dw	0D157h
+	dw	0D023h
+
+	dw	005CEh	; MM000001.010
+	dw	00208h
+	dw	0CE80h
+	dw	0CD48h
+
+	dw	00C53h	; SB000001.010
+	dw	00373h
+	dw	0CAAFh
+	dw	0C97Bh
+
+	dw	039A3h	; SB000002.010
+	dw	01DC7h
+	dw	0D0B5h
+	dw	0CF81h
+
+	dw	01254h	; WI000001.010
+	dw	00503h
+	dw	0CDA3h
+	dw	0CC6Fh
