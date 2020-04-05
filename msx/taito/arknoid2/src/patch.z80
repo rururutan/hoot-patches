@@ -1,0 +1,65 @@
+;
+; Arkanoid II (CRC32:2e131532) (c)Taito / Nideco
+;
+; @autor RuRuRu
+; @date 2010/06/15 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	ei
+	in	a,(03h)		; Code No.
+	di
+	call	04028h
+	ei
+
+	jr	play_end
+
+stop:
+	di
+	ld	a, 00h
+	call	04028h
+	ei
+	; 正式な停止コマンドは無い
+	call	090h
+	di
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ld	a,01H
+	ld	(0C302h),a
+
+	ret
+
+irq:
+	call	0420BH		; Sound irq
+	ret

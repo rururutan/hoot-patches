@@ -1,0 +1,85 @@
+;
+; 天国よいとこ(CRC32:7e637801) (c)Taito
+;
+; @autor RuRuRu
+; @date 2010/06/15 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+; play
+	call	04B2Bh
+	di
+	in	a,(03h)		; Code No.
+	ld	(playcode), a
+	call	04B0Fh		; BGM
+	in	a,(05h)		; Loop flag
+	ld	(flgloop),a
+	ei
+	jr	play_end
+
+play_se:
+	di
+	in	a,(03h)		; Code No.
+	call	04B03h		; SE
+	ei
+	jr	play_end
+
+stop:
+	di
+	xor	a
+	ld	(flgloop),a
+	call	04B2Bh
+	ei
+
+play_end:
+	xor	a		; Change status
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ret
+
+irq:
+	call	06000H
+
+	ld	a, (flgloop)
+	cp	01h
+	jr	nz, irq_end
+	ld	a, (playcode)
+	call	04B0Fh
+irq_end:
+	ret
+
+flgloop:
+	db	00h
+playcode:
+	db	00h
