@@ -1,0 +1,119 @@
+; KING'S KNIGHT MSX (c)SQUARE
+;
+; @autor asuka_rangray
+; @date 2020/04/05 1st Release
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+
+	ld	a,0c3h
+	ld	(0FD9Fh), a
+	ld	hl,08000h
+	ld	(0FDA0h), hl
+
+	ld	a,0ffh
+	ld	(0f182h),a
+	ld	(0f192h),a
+	ld	(0f1a2h),a
+	ld	(0f1b2h),a
+	ld	(0f1c2h),a
+	ld	(0f1d2h),a
+
+	; バンク切り替え
+	ld	a,000H
+	ld	(06000H),a
+
+	ld	a,007H
+	ld	(07000H),a
+
+	call	00090h
+
+	ei
+
+; メインループ
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(03h)		; Code No.
+
+	cp	009h
+	jr	nc,loop
+
+	ld	b,a
+	add	a,a
+	add	a,a
+	add	a,b
+	add	a,b
+
+	ld	hl,MUSIC_TBL
+	ld	b,000h
+	ld	c,a
+	add	hl,bc
+
+
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+
+	ld	c,(hl)
+	inc	hl
+	ld	b,(hl)
+	inc	hl
+
+	push	bc
+	ld	c,(hl)
+	inc	hl
+	ld	b,(hl)
+	inc	hl
+	ld	l,c
+	ld	h,b
+	pop	bc
+
+	call	043eah
+
+	xor	a
+	out	(02h),a
+
+	ei
+
+	jr	loop
+
+stop:
+
+	di
+
+	xor	a
+	out	(02h),a
+
+	call	04546h
+	call	00090h
+
+	ei
+
+	jr	loop
+
+
+MUSIC_TBL:
+	;	de	bc	hl
+	dw	09e01h,	09e2eh,	09dd1h	;
+	dw	096f4h,	0927dh,	09000h	;
+	dw	09fd3h,	0a217h,	09e3dh	;
+	dw	0a409h,	0a434h,	0a3e2h	;
+	dw	0a4edh,	0a574h,	0a469h	;
+	dw	0a606h,	0a62ah,	0a5e9h	;
+	dw	0a676h,	0a689h,	0a65bh	;
+	dw	0a7c2h,	0ab4dh,	0a69eh	;
+	dw	0b23fh,	0b6e6h,	0ae78h	;
