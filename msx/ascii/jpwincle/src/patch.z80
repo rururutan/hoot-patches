@@ -1,12 +1,13 @@
-; J.P. Winkle (c)ASCII 用
-; メインルーチン
-
+; J.P. Winkle (c)ASCII
+;
+; @autor RuRuRu
+; @date 2014/03/15 1st Release
+; @date 2020/05/23 Support 2nd ending
+;
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
-
-; メインループ
+stack:	equ	0f380h
 
 main:
 	di
@@ -16,7 +17,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; Key wait
 	or	a
 	jr	z,loop
 
@@ -26,6 +27,9 @@ loop:
 	in	a,(04h)
 	cp	01h
 	jr	z,play_se
+
+	in	a,(05h)
+	ld	(0E02Dh),a	; Stage Loop 0 or 1
 
 	xor	a
 	ld	(0E0B4h),a
@@ -53,7 +57,7 @@ play_se:
 
 play_end:
 	xor	a
-	out	(02h),a		; hoot status変更
+	out	(02h),a		; Change hoot status
 	jr	loop
 
 play_stop:
@@ -65,7 +69,7 @@ play_stop:
 stop:
 	call	play_stop
 
-	xor	a		; hoot status変更
+	xor	a		; Change hoot status
 	out	(02h),a
 	jr	loop
 
