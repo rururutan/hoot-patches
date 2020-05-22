@@ -1,13 +1,15 @@
-; DanteII (c)ASCII 用
-; メインルーチン
+; DanteII (c)ASCII
+;
+; @autor RuRuRu
+; @date 2010/08/20 1st Release
+; @date 2013/09/08 Add halt
+;
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
-mdata:	equ	0b700h		; 曲データアドレス
-
-; メインループ
+stack:	equ	0f380h
+mdata:	equ	0b700h		; 譖ｲ繝�繝ｼ繧ｿ繧｢繝峨Ξ繧ｹ
 
 main:
 	di
@@ -17,7 +19,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; Key wait
 	or	a
 	jr	z,loop
 
@@ -79,7 +81,7 @@ stop:
 
 play_end:
 	xor	a
-	out	(02h),a		; hoot status変更
+	out	(02h),a		; Change hoot status
 	jr	loop
 
 init:
@@ -87,6 +89,14 @@ init:
 	ld	(0FD9Fh), a
 	ld	hl, irq
 	ld	(0FDA0h), hl
+
+	; patch for old version of hoot
+	in	a,(07h)
+	ld	(0C730h), a	; OPLL flag
+	ld	a, 0C9h
+	ld	(0C73Ah),a
+	ld	(0C73Fh),a
+	ld	(0C748h),a
 
 	call	0C700h		; Init
 
