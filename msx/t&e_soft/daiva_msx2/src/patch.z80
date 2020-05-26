@@ -1,0 +1,124 @@
+; DAIVA The Cup of Soma (MSX2) (c)T&E soft
+;
+; @author RuRuRu
+; @date 2011/01/16 1st Release
+
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+;	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	di
+
+	in	a,(03h)		; Code No.
+	out	(03h),a
+
+	ld	(flg_drv), a
+	cp	00h
+	call	z, play_d
+	cp	01h
+	call	z, play_demo
+	cp	02h
+	call	z, play_ending
+	cp	03h
+	call	z, play_msx
+
+	ei
+	jr	loop
+
+stop:
+	di
+	ld	a, 04h
+	ld	(flg_drv), a
+	call	090h		; 手抜き
+	ei
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+	ret
+
+irq:
+	ld	a,(flg_drv)
+	cp	00h
+	jp	z,09130h	; D.BIN
+	cp	01h
+	jp	z,09124h	; DEMO.BIN
+	cp	02h
+	jp	z,0C125h	; ENDING.BIN
+	cp	03h
+	jp	z,0ADD5h	; MSX.BIN
+	ret
+
+play_d:
+	push	af
+	call	09108h		; D.BIN
+	call	0AD56h
+	call	0AD74h
+	pop	af
+	ret
+play_demo:
+	push	af
+	ld	a, 0C9h
+	ld	(0A250h), a
+	call	090FCh		; DEMO.BIN
+	ld	a,001h
+	ld	(0903BH),a
+	ld	(0903CH),a
+	call	0A221h
+	pop	af
+	ret
+play_ending:
+	push	af
+	; Copy 9000->C000
+	ld	hl, 09000h
+	ld	de, 0C000h
+	ld	bc, 01E00h
+	ldir
+	call	0C0FDh		; ENDING.BIN
+	call	0CB87h
+	call	0CBA5h
+	pop	af
+	ret
+play_msx:
+	; Copy 9000->9800
+	ld	hl, 09000h + 02750h - 1
+	ld	de, 09800h + 02750h - 1
+	ld	bc, 02750h
+	lddr
+	ld	a, 0C9h
+	ld	(0AC15h), a
+	call	0ADADh
+	call	0ABFAh
+
+	in	a, (05h)		; loop flag
+	ld	c, a
+	in	a, (04h)		; code
+	call	0ACCCh
+	ret
+
+flg_drv:
+	db	04h
