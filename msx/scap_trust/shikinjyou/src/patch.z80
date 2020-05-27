@@ -1,0 +1,109 @@
+; 紫禁城 (c)1990 Scap Trust
+;
+; @author RuRuRu
+; @date 2010/06/03 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+mdata:	equ	0A35Ah		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+	ld	a,001h		; API 03 Stop
+	call	093C9h
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+
+	in	a,(05h)
+	ld	(09457h),a	; loop limit
+	ld	a,000h
+	ld	(0C607h),a
+	ld	a,002h		; API 02 Play
+	ld	c,000h
+	call	093C9h
+	ei
+	jr	loop
+
+play_se:
+	in	a,(03h)
+	ld	c,a
+	ld	a,006h		; API 06 SE
+	call	093C9h
+	jr	play_end
+
+stop:
+	di
+	ld	a,003h
+	call	093C9h
+	ei
+
+play_end:
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	; Fix for FMPAC.ROM
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ld	a, 0c3h
+	ld	(0030h), a
+	ld	hl, callf
+	ld	(0031h), hl
+
+	ld	a, 0c3h
+	ld	(094D8h), a
+	ld	hl, callf
+	ld	(094D9h), hl
+
+	in	a,(07h)		; デバイス取得(01:opll)
+	and	01h
+	jp	z,devpsg
+	ld	hl,0D77Ch
+	call	04113h
+	ld	a, 01h
+	jp	initdrv
+devpsg:
+	ld	a, 00h
+initdrv:
+	ld	(0D826h), a	; opll flag
+
+	ld	a,000h
+	call	093C9h
+	ld	a,001h
+	call	093C9h
+
+	ret
+
+callf:
+	push	bc
+	pop	ix
+	jp	(ix)
+
+irq:
+	ret
