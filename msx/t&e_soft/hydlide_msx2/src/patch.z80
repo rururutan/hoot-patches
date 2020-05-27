@@ -1,0 +1,50 @@
+; Hydlide for MSX2 (c)1985 T&E soft
+;
+; @author RuRuRu
+; @date 2016/10/11 1st Release
+;
+; 製品版、MSX-FAN付属品共に対応
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(03h)		; Code No.
+	cp	01
+	jr	z, play_se
+
+	call	0C6EAh
+	jr	play_end
+
+play_se:
+	call	09C24h
+	jr	play_end
+
+stop:
+	call	0C70Ah		; Stop
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+init:
+	call	0C6D1h		; Set IRQ
+
+	ret
