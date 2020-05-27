@@ -1,0 +1,64 @@
+; Deep Dungeon (c)1988 Scap Trust
+;
+; @author RuRuRu
+; @date 2010/06/21 1st Release
+; @date 2016/04/28 Fix irq
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	08B03h		; Stop
+
+	halt
+
+	xor	a
+	ld	(0D16EH),a
+
+	in	a,(03h)		; Code No.
+	call	08AC6h
+
+	jr	play_end
+
+stop:
+	call	08B03h		; Stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ret
+
+irq:
+	ld	a,(0D16EH)
+	push	af
+	call	08B6FH		; Sound irq
+	pop	af
+	ld	(0D16EH),a
+	ei
+	ret
+
