@@ -1,0 +1,55 @@
+; Deep Dungeon 2 (c)1988 Scap Trust
+;
+; @author RuRuRu
+; @date 2010/06/22 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	06ED3h		; Stop
+
+	di
+	in	a,(03h)		; Code No.
+	call	06EA0h
+	ei
+	jr	play_end
+
+stop:
+	di
+	call	06ED3h		; Stop
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ret
+
+irq:
+	call	06F3FH		; Sound irq
+	ret
