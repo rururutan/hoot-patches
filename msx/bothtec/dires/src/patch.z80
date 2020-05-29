@@ -1,0 +1,105 @@
+; DIRES -giger loop- (c)1987 Bothtec
+;
+; @autor RuRuRu
+; @date 2010/08/18 1st Release
+; @date 2013/02/05 Support parameter
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,set_param
+
+	in	a,(03h)
+	cp	00h
+	jr	nz,play1
+
+; Opening Driver
+play0:
+	call	04B50h		; Set IRQ
+	call	04B85h		; Title Song Start
+	jr	play_end
+
+; Game Driver
+play1:
+	call	0A467H
+
+	in	a,(03h)
+	dec	a
+	ld	c,a
+	add	a,a
+	add	a,c
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	push	af
+	inc	hl
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	ld	de, play_ret
+	push	de
+	jp	(hl)
+
+play_ret:
+	pop	af
+	ld	(0D332h),a	; Loop flag
+	call	0AAA3h		; Set IRQ
+	jr	play_end
+
+set_param:
+	in	a,(03h)
+	ld	(0D34Bh),a
+	jr	play_end
+
+stop:
+	di
+	ld	a, 01h
+	ld	(0C011h),a	; Title Disable
+	ld	a, 0C9h
+	ld	(0FD9Fh),a
+	call	0AB70h
+	call	090h
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C9h
+	ld	(0D34Dh),a
+	ld	(0C00Ch),a
+	ld	a, 04h
+	ld	(07800h),a	; A000~BFFF : bank 4
+	ret
+
+mustbl:
+	db	00
+	dw	0AAE5h		; BGM1
+	db	00
+	dw	0AB0Ch		; BGM2
+	db	01
+	dw	0AB33h		; GAME OVER
