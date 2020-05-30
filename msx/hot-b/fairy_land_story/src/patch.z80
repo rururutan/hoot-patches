@@ -2,6 +2,7 @@
 ;
 ; @autor RuRuRu
 ; @date 2010/05/20 1st Release
+; @date 2020/05/30 Fix stop request
 ;
 
 	cseg
@@ -27,21 +28,27 @@ loop:
 	jr	nz,stop
 
 	in	a,(04h)
-	cp	01h
+	cp	00h
 	jr	z,play_music
 
-;	call	play_stop
+	call	play_stop
+	halt
+	halt
+	halt
 
 play_music:
 	in	a,(03h)		; Code No.
-	call	047FBh
+	call	047FBh		; Request
 
+play_end:
 	xor	a
 	out	(02h),a		; hoot status変更
 	jr	loop
 
 play_stop:
-	ld	a, 080h
+	xor	a		; SE stop
+	call	047FBh
+	ld	a, 080h		; BGM stop
 	call	047FBh
 	ret
 
@@ -58,7 +65,7 @@ init:
 	ld	hl, 0481Eh	; sound irq
 	ld	(0FDA0h), hl
 
-	ld	a, 0F0h
+	ld	a, 0F0h		; Request enable
 	call	047FBh
 
 	ld	a, 01h
