@@ -1,0 +1,62 @@
+; Gall Force: Defense of Chaos (c)1986 Sony
+;
+; @autor RuRuRu
+; @date 2010/06/17 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	di
+	in	a,(03h)		; Code No.
+;	call	0B906h
+	call	0B8F3h
+	ei
+	jr	play_end
+
+stop:
+	di
+	xor	a
+	call	0B8CDh		; Stop
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+; Bank
+	ld	a, 000h
+	ld	(07000h), a
+	ld	a, 004h
+	ld	(06000h), a
+
+	ret
+
+irq:
+	call	0B97CH		; Sound irq
+	ret

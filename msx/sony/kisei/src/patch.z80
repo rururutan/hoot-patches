@@ -1,0 +1,86 @@
+; 棋聖 (c)1987 Sony
+;
+; @autor RuRuRu
+; @date 2010/10/06 1st Release
+; @date 2020/06/03 Support S.E.
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	in	a, (04h)
+	cp	01
+	jr	z, play_se
+
+	in	a, (03h)	; Code No.
+	xor	a
+	call	0DC03h
+	jr	play_end
+
+play_se:
+	in	a, (03h)	; Code No.
+	add	a, a
+	ld	e, a
+	ld	d, 00h
+	ld	hl, setbl
+	add	hl, de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	push	de
+	pop	hl
+	call	075D0h
+	jr	play_end
+
+play_stop:
+	ld	a, 0FFh
+	call	0DC03h
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	call	090h
+	jr	loop
+
+init:
+	ld	a,007H
+	ld	(06800H),a	; 6000~7FFFh
+	ld	hl,06000H	; Page7 -> D1FA
+	ld	de,0D1FAH
+	ld	bc,00C00H
+	ldir
+
+	ld	hl,0D1FAH
+	ld	(0DE18H),hl
+
+	ld	a,001H
+	ld	(06800H),a
+
+	ret
+
+setbl:
+	dw	07617H
+	dw	0762BH
+	dw	0763DH

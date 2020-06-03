@@ -1,0 +1,104 @@
+; 爆走スタントレーシング Car Jamboree (c)1984 Sony/大森電気
+;
+; @autor RuRuRu
+; @date 2013/04/26 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f300h
+
+main:
+	di
+	im	1
+	ld	sp, stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a, (02h)	; Key wait
+	or	a
+	jr	z, loop
+
+	cp	01h
+	jr	nz, stop
+
+	in	a, (03h)
+
+	cp	00h
+	jr	nz,sel_se
+
+	ld	hl,078E7h	; BGM
+	call	07A89h
+	jr	play_end
+
+play_se1:
+	ld	(0E4F9H),hl	; Ch#0 ptr
+	ld	(0E4FBH),hl	; Ch#0 ptr#2
+	jr	play_end
+
+play_se2:
+	call	07A89H
+	jr	play_end
+
+play_se3:
+	ld	(0E503H),hl	; Ch#2 ptr
+	ld	(0E505H),hl	; Ch#2 ptr#2
+	jr	play_end
+
+sel_se:
+
+	cp	01h
+	call	z, 077FDh
+
+	cp	02h
+	ld	hl,07892h	; 救急車
+	jr	z, play_se1
+
+	cp	03h
+	ld	hl,07875h
+	jr	z, play_se1
+
+	cp	04h
+	ld	hl,078A7h	; BGM
+	jr	z, play_se2
+
+	cp	05h
+	ld	hl,078A0h	; SE?
+	jr	z, play_se2
+
+	cp	05h
+	ld	hl,07899h	; 救急車
+	jr	z, play_se2
+
+	cp	06h
+	ld	hl,079D2h	; SE
+	jr	z, play_se3
+
+	cp	07h
+	ld	hl,0788Ah	; SE
+	jr	z, play_se3
+
+	jr	play_end
+
+stop:
+	call	0783Ch
+
+play_end:
+	xor	a
+	out	(02h), a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	call	077DAh
+	ret
+
+irq:
+	call	077D1h
+	ret

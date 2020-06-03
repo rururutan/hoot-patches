@@ -1,0 +1,83 @@
+; Super Tennis (c)1985 Sony
+;
+; @autor RuRuRu
+; @date 2010/10/20 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f370h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+;	call	play_stop
+
+	ld	hl, plret	; Set return address
+	push	hl
+
+	in	a, (03h)	; Code No.
+	add	a, a
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	push	de
+	pop	hl
+;	di
+	jp	(hl)
+plret:
+;	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	0BA8Ah
+	ret
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	call	0BA8Ah
+
+	ret
+
+irq:
+	call	0BAD1h
+	ret
+
+mustbl:
+	dw	0A4E1h
+	dw	0A501h
+	dw	0A51Ah
+	dw	0A52Dh
+	dw	0A535h
+	dw	0A53Dh
+	dw	0A545h
+	dw	0A54Dh
+	dw	0A555h

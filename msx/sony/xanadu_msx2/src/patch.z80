@@ -1,0 +1,181 @@
+; Xanadu (c)1987 Sony/Falcom
+;
+; @autor RuRuRu
+; @date 2010/12/29 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a, (04h)
+	cp	01h
+	jr	z, play_se
+
+	call	play_stop
+
+	in	a, (03h)
+	push	af
+	di
+	out	(03h), a
+
+	add	a,a
+	add	a,a
+	ld	c,a
+	ld	b,00h
+	ld	hl, mustbl
+	add	hl, bc
+	ld	c, (hl)
+	inc	hl
+	ld	b, (hl)
+	inc	hl
+	ld	(irq_ptr), bc
+	ld	c, (hl)
+	inc	hl
+	ld	b, (hl)
+	ld	(req_ptr), bc
+
+	ei
+	pop	af
+
+	cp	03h
+	call	z, init_ed
+
+	cp	04h
+	call	z, init_food
+
+	call	play_start
+
+	jr	loop
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+play_start:
+	call	bgm_enable
+	call	se_enable
+	ret
+
+play_stop:
+	call	bgm_disable
+	call	se_disable
+	call	090h
+	ret
+
+bgm_enable:
+	ld	a, 0Ch
+	ld	(0C5A2h), a
+	ret
+
+bgm_disable:
+	xor	a
+	ld	(0C5A2h), a
+	ret
+
+se_enable:
+	xor	a
+	ld	(0C492h), a
+	ret
+
+se_disable:
+	ld	a, 0FFh
+	ld	(0C492h), a
+	ret
+
+play_se:
+	ld	a, (0C5A2h)
+	push	af
+	call	bgm_disable
+	call	se_enable
+	in	a,(03h)		; Code No.
+	ld	hl, play_se_end
+	push	hl
+	ld	hl, (req_ptr)
+	jp	(hl)
+play_se_end:
+	pop	af
+	ld	(0C5A2h), a
+	jr	play_end
+
+stop:
+	call	play_stop
+	jr	play_end
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+	ret
+
+init_ed:
+	ld	a, 0C9h
+	ld	(0815Fh), a
+	call	0814Fh
+	ret
+
+init_food:
+	call	082C2h
+	ret
+
+irq:
+	ld	a, (counter)
+	inc	a
+	cp	08			; 調整
+	jr	nz, irq_end
+	ld	hl, irq_end2
+	push	hl
+	ld	hl, (irq_ptr)
+	jp	(hl)
+irq_end2:
+	xor	a
+irq_end:
+	ld	(counter),a
+	ret
+
+counter:
+	db	00h
+
+irq_ptr:
+	dw	dummy
+
+req_ptr:
+	dw	dummy
+
+dummy:
+	ret
+
+mustbl:
+	dw	09A23h		; main
+	dw	098C4h
+
+	dw	09542h		; boss
+	dw	dummy		; 確認出来てないのでdummyにしておく
+;	dw	093E4h
+
+	dw	09620h		; king dragon
+	dw	dummy
+;	dw	094C2h
+
+	dw	0841Ch		; ending
+	dw	dummy
+
+	dw	06525h		; food enough
+	dw	063BBh

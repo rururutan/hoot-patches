@@ -1,0 +1,73 @@
+; BackGammon (c)1985 Sony/Tecnosoft
+;
+; @autor RuRuRu
+; @date 2014/02/14 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f000h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+
+	in	a,(03h)
+	cp	07h
+	jr	nc,play_end
+
+	ld	hl, play_end
+	push	hl
+
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	jp	(hl)
+
+	jr	play_end
+
+stop:
+	di
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	ei
+	call	090h
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	ret
+
+mustbl:
+	dw	06B74h
+	dw	06B8Bh
+	dw	06BA0h
+	dw	06BBFh
+	dw	06BFFh
+	dw	06C20h
+	dw	06D1Ah
+

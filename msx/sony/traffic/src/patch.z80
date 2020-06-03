@@ -1,0 +1,63 @@
+; 渋滞パニックトラフィック (c)1986 Sony
+;
+; @autor RuRuRu
+; @date 2016/09/18 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f300h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	ld	hl, play_end
+	push	hl
+
+	in	a,(03h)
+	add	a, a		; x2
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ex	de,hl
+	jp	(hl)
+
+	jr	play_end
+
+stop:
+	di
+	call	090h
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	call	090h
+	ret
+
+mustbl:
+	dw	075E3h
+	dw	0761Ch
+	dw	07629h
+	dw	07631h

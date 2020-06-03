@@ -1,0 +1,148 @@
+; SCION (c)1985 Sony
+;
+; @autor RuRuRu
+; @date 2010/10/19 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f370h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	di
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	b, a
+	add	a, a		; x4
+	add	a, b		; x6
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	xor	a
+	ld	c, a
+	ld	b, 03h
+pllp:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	a,d
+	cp	00h
+	jr	z,ignr
+	push	bc
+	push	hl
+	ld	b, c
+	call	05EA9h
+	pop	hl
+	pop	bc
+ignr:
+	inc	c
+	djnz	pllp
+
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	05ED6h
+	ret
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ret
+
+irq:
+	call	05F1Dh
+	ret
+
+mustbl:
+
+	dw	07D5EH
+	dw	07D83H
+	dw	00000h
+
+	dw	07E16H
+	dw	00000h
+	dw	00000h
+
+	dw	07F5FH
+	dw	07FA5H
+	dw	00000h
+
+	dw	07E62H
+	dw	07E81H
+	dw	00000h
+
+	dw	07DA8H
+	dw	07DDFH
+	dw	00000h
+
+	dw	07FE2H
+	dw	00000h
+	dw	00000h
+
+	dw	00000h
+	dw	00000h
+	dw	07F24H	; 02
+
+	dw	07EF4H
+	dw	00000h
+	dw	00000h
+
+	dw	00000h
+	dw	00000h
+	dw	07F04H	; 02
+
+	dw	00000h
+	dw	07F17H	; 01
+	dw	00000h
+
+	dw	00000h
+	dw	07EA0H	; 01
+	dw	00000h
+
+	dw	07EC6H
+	dw	07ED3H
+	dw	00000h
+
+	dw	00000h
+	dw	00000h
+	dw	07EB3H	; 02
+
+	dw	07F40H
+	dw	00000h
+	dw	00000h
+
+	dw	07EE0H
+	dw	07EEAH
+	dw	00000h
+

@@ -1,0 +1,101 @@
+; Membership Golf (c)1988 Sony
+;
+; @autor RuRuRu
+; @date 2011/06/25 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	xor	a
+	call	api
+
+	di
+	in	a, (03h)	; Code No.
+
+	push	af
+	in	a, (04h)
+	out	(03h), a
+	pop	af
+
+	cp	80h
+	jr	z,play2
+
+	cp	81h
+	jr	z,play3
+
+	cp	82h
+	jr	z,play4
+
+	ei
+
+	call	api
+	jr	play_end
+
+play2:
+	call	0BBA3h
+	call	0A000h		; Data set
+	ei
+	jr	loop
+
+play3:
+	call	0BBA3h
+	call	0A003h		; Data set2
+	ei
+	jr	loop
+
+play4:
+	call	0BBA3h
+	ld	hl,0A8FFh
+	ld	de,0AAFFh
+	ld	bc,0900h
+	lddr
+	call	0A200h
+	ei
+	jr	loop
+
+stop:
+	di
+	call	0BBA3h
+	xor	a
+	call	api
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 0BB40h
+	ld	(0FDA0h), hl
+	ret
+
+api:
+	ld	b,000H
+	ld	c,a
+	add	a,a		; x2
+	add	a,c		; x3
+	ld	c,a
+	ld	hl,0BBA6H
+	add	hl,bc
+	jp	(hl)

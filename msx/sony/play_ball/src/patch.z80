@@ -1,0 +1,135 @@
+; Play Ball (c)1986 Sony
+;
+; @autor RuRuRu
+; @date 2010/10/19 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f370h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	di
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	b, a
+	add	a, a		; x4
+	add	a, b		; x6
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	xor	a
+	ld	c, a
+	ld	b, 03h
+pllp:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	a,d
+	cp	00h
+	jr	z,ignr
+	push	bc
+	push	hl
+	ld	b, c
+	call	08C5Fh
+	pop	hl
+	pop	bc
+ignr:
+	inc	c
+	djnz	pllp
+
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	08C86h
+	ret
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ret
+
+irq:
+	call	08CD1h
+	ret
+
+mustbl:
+	dw	0B7F5H
+	dw	0BA81H
+	dw	0BCD1H
+
+	dw	08C02H
+	dw	08C21H
+	dw	08C40H
+
+	dw	08B5BH
+	dw	08B7DH
+	dw	00000h
+
+	dw	08B99H
+	dw	08BB8H
+	dw	08BE3H
+
+	dw	00000h
+	dw	00000h
+	dw	08ADFH	; 02
+
+	dw	08ACFH
+	dw	08ADFH
+	dw	00000h
+
+	dw	08AAFH	; 00
+	dw	00000h
+	dw	00000h
+
+	dw	08A6FH	; 00
+	dw	00000h
+	dw	00000h
+
+	dw	00000h
+	dw	00000h
+	dw	08A85H	; 02
+
+	dw	00000h
+	dw	08A95H	; 01
+	dw	00000h
+
+	dw	08ABFH	; 00
+	dw	00000h
+	dw	00000h
+
+	dw	00000h
+	dw	00000h
+	dw	08A68H	; 02
+

@@ -1,0 +1,133 @@
+; DoRoDoN (c)1984 Sony
+;
+; @autor RuRuRu
+; @date 2011/07/13 1st Release
+; @date 2020/06/02 Support more S.E.
+
+	cseg
+	org	0400h
+
+stack:	equ	0f000h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	ld	a, (oneshot)
+	cp	00h
+	jr	z,loop_main
+
+	ld	a, (0C9FAH)
+	cp	00h
+	jr	z,loop_main
+
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	call	090h
+
+loop_main:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a, (04h)
+	ld	(oneshot), a
+
+	in	a,(03h)
+	cp	80h
+	jr	z, play2
+	cp	81h
+	jr	z, play3
+
+play_start:
+	di
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	ld	(0C006H),hl
+
+	xor	a
+	ld	(0CA13h),a	; irq enable
+	ld	a,001H
+	ld	(0C005H),a	; time
+	xor	a
+	ld	(0C9FAH),a	; loop num?
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ei
+	jr	play_end
+
+play2:
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	call	07A3EH
+	call	056B0h	; 6loop stage clear
+
+	call	play_stop
+	jr	play_end
+
+play3:
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	call	07A3Eh
+	call	07935h	; 4loop enemy destroy
+	call	play_stop
+	jr	play_end
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	di
+	call	090h
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	ei
+	ret
+
+stop:
+	call	play_stop
+	jr	play_end
+
+init:
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+	ret
+
+irq:
+	call	04013H		; Sound Set
+;	call	06166h
+	call	079F6H		; Sound IRQ
+	ret
+
+mustbl:
+	dw	074B7h		; 00 Main BGM
+	dw	0725Ah		; 01 Power up
+	dw	07189h		; 02
+	dw	070E3h		; 03 Get Powerup
+	dw	07115h		; 04 SE
+	dw	075FDh		; 05 Game Over
+	dw	07698h		; 06 Miss
+	dw	07885h		; 07 Stage Clear
+	dw	07829h		; 08 Game Start
+
+oneshot:
+	db	00h
