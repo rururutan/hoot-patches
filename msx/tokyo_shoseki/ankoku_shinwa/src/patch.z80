@@ -1,0 +1,329 @@
+; 暗黒神話 ヤマトタケル伝説 (c)1988 東京書籍/ZAP
+;
+; @autor RuRuRu
+; @date 2011/05/01 1st Release
+;
+; Wikipediaにはトンキンハウスって書いてあるけど、東京書籍
+
+	cseg
+	org	0d000h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a,(03h)
+	add	a,a
+	add	a,a
+
+	ld	hl, mustbl
+	ld	d, 00h
+	ld	e, a
+	add	hl, de
+	ld	a, (hl)
+	out	(03h), a
+	inc	hl
+	inc	hl
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	push	de
+	pop	hl
+
+	di
+	call	0C009h
+	ei
+	jr	loop
+
+stop:
+	di
+	call	0C006h
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0038h), a
+	ld	hl, 0C000h
+	ld	(0039h), hl
+
+	call	0C006h
+
+	ret
+
+mustbl:
+; demo.com
+	dw	0000h
+	dw	362Bh
+
+	dw	0000h
+	dw	3BB7h
+
+	dw	0000h
+	dw	3DBEh
+
+; btl.com
+	dw	0001h
+	dw	60ADh
+
+	dw	0001h
+	dw	6237h
+
+	dw	0001h
+	dw	6355h
+
+;	dw	0001h			; se
+;	dw	672Fh
+
+; lost.com
+
+	dw	0002h
+	dw	2048h
+
+; story1.com
+	dw	0003h
+	dw	03FF7h
+
+	dw	0003h
+	dw	04176h
+
+; story2.com
+	dw	0004h
+	dw	24DFh
+
+	dw	0004h
+	dw	254Fh
+
+; story3a.com
+	dw	0005h
+	dw	035F5h
+
+	dw	0005h
+	dw	03894h
+
+	dw	0005h
+	dw	03904h
+
+	dw	0005h
+	dw	039C3h
+
+;	dw	0005h
+;	dw	03A5Ch			; SE
+
+; story3b.com
+	dw	0006h
+	dw	02AF0h
+
+	dw	0006h
+	dw	02C6Fh
+
+	dw	0006h
+	dw	02D8Fh
+
+	dw	0006h
+	dw	02DFFh
+
+;	dw	0006h
+;	dw	02EBDh			; SE
+
+;	dw	0006h
+;	dw	02F57h			; SE
+
+; story3c.com
+	dw	0007h
+	dw	02DA1h
+
+	dw	0007h
+	dw	02F20h
+
+	dw	0007h
+	dw	03040h
+
+	dw	0007h
+	dw	030B0h
+
+	dw	0007h
+	dw	0316Fh
+
+;	dw	0007h
+;	dw	03208h			; SE
+
+; story3d.com
+
+	dw	0008h
+	dw	02CB4h
+
+	dw	0008h
+	dw	02E33h
+
+	dw	0008h
+	dw	02F53h
+
+	dw	0008h
+	dw	02FC3h
+
+	dw	0008h
+	dw	03082h
+
+; story4a.com
+
+	dw	0009h
+	dw	03507h
+
+	dw	0009h
+	dw	035d6h
+
+	dw	0009h
+	dw	03728h
+
+	dw	0009h
+	dw	03848h
+
+	dw	0009h
+	dw	038FDh
+
+; story4b
+
+	dw	000Ah
+	dw	02EC7h
+
+	dw	000Ah
+	dw	02F96h
+
+	dw	000Ah
+	dw	030E8h
+
+	dw	000Ah
+	dw	03208h
+
+	dw	000Ah
+	dw	032BDh
+
+; story5a
+
+	dw	000Bh
+	dw	031E4h
+
+	dw	000Bh
+	dw	03254h
+
+	dw	000Bh
+	dw	033C4h
+
+; story5b
+
+	dw	000Ch
+	dw	028B8h
+
+	dw	000Ch
+	dw	02928h
+
+	dw	000Ch
+	dw	02A98h
+
+; story6
+
+	dw	000Dh
+	dw	03408h
+
+	dw	000Dh
+	dw	03478h
+
+	dw	000Dh
+	dw	035F7h
+
+	dw	000Dh
+	dw	036ACh
+
+; story7a
+
+	dw	000Eh
+	dw	035ADh
+
+	dw	000Eh
+	dw	0367Ch
+
+	dw	000Eh
+	dw	0373Fh
+
+	dw	000Eh
+	dw	0385Fh
+
+	dw	000Eh
+	dw	039B1h
+
+;	dw	000Eh		; SE
+;	dw	0393Ch
+
+;	dw	000Eh		; SE
+;	dw	03B00h
+
+; story7b
+
+	dw	000Fh
+	dw	02AAAh
+
+	dw	000Fh
+	dw	02B79h
+
+	dw	000Fh
+	dw	02C3Ch
+
+	dw	000Fh
+	dw	02D5Ch
+
+	dw	000Fh
+	dw	02EAEh
+
+	dw	000Fh
+	dw	02F39h
+
+	dw	000Fh
+	dw	02FFDh
+
+; story8a
+
+	dw	0010h
+	dw	02630h
+
+	dw	0010h
+	dw	026A0h
+
+	dw	0010h
+	dw	02763h
+
+	dw	0010h
+	dw	02818h
+
+; story8b
+
+	dw	0011h
+	dw	026C3h
+
+	dw	0011h
+	dw	02733h
+
+	dw	0011h
+	dw	027F6h
+
+	dw	0011h
+	dw	028ABh
+

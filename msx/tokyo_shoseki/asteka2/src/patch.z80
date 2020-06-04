@@ -1,0 +1,89 @@
+; 太陽の神殿 ASTEKA II (c)1987 東京書籍/Compile
+;
+; @autor RuRuRu
+; @date 2010/06/04 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f800h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a,(03h)		; Code No.
+	add	a,a
+	ld	e,a
+	ld	d,000H
+	ld	hl,mustbl
+	add	hl,de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ex	de,hl
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+	call	05EB6h
+	jp	play_end
+
+play_se:
+	call	05EC7h
+	jp	play_end
+
+stop:
+	call	075E0h
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 076DFh
+	ld	(0FDA0h), hl
+
+	ld	a, 01h
+	ld	(0E7FFh), a
+
+	ret
+
+mustbl:
+	dw	0B275h
+	dw	0B3B4h
+	dw	0B4D0h
+	dw	0B643h
+	dw	0B758h
+	dw	0B231h	; 05
+;SE
+	dw	0B257h
+	dw	0B8A3h
+	dw	0B8BAh
+;	dw	0B8E6h
+;	dw	0B8FBh
+;	dw	0B915h
+	dw	0B937h	; ok
+;	dw	0B955h
+	dw	0B974h	; ok
+	dw	0B999h	; ok
+;	dw	0B9A8h
+	dw	0B9CAh	; ok
+	dw	0B9E9h	; ok
+	dw	00000h
