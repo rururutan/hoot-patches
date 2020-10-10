@@ -1,0 +1,64 @@
+; 勤労5号 (c)Keiichi Kuroda / BTO
+
+	cseg
+	org	0400h
+
+stack:	equ	0f300h		; スタックエリア
+mdata:	equ	09000h		; 曲データアドレス
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	0602Ch		; Stop
+
+	di
+	in	a,(03h)		; Code No.
+	out	(03h), a
+	ei
+
+	ld	de, (08FFAh)
+	ld	hl, mdata
+	xor	a
+	call	06026h
+
+	ei
+	jr	loop
+
+stop:
+	di
+	call	0602Ch		; Stop
+	ei
+
+play_end:
+	xor	a
+	out	(02h),a		; hoot status変更
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 06029h	; MINTER
+	ld	(0FDA0h), hl
+
+	xor	a
+	call	06020h		; INITAL
+
+	ld	a, 080h
+	ld	(0F343h), a
+
+	xor	a
+	call	06038h
+
+	ret
