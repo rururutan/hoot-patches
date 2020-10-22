@@ -1,0 +1,9 @@
+[Header]
+DWORD - Offset (実際には+4する事)
+DWORD - Len
+WORD  - Song No
+ x file分 (Song Noがffffで終端)
+
+[Data]
+DATAは先頭のZmuSiが不足してるので足す。
+Cはなぜか有る。(奇数番地アクセス防止策?)
