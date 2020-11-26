@@ -1,0 +1,92 @@
+; D.A.S.S (c)MSX-ENGINE 1993
+;
+; @autor RuRuRu
+; @date 2015/10/20 1st Release
+;
+
+	cseg
+	org	01000h
+
+stack:	equ	0f000h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+
+	in	a, (04h)
+	cp	01h
+	jr	z,se_play
+
+;	call	04003h	; Stop
+
+	in	a, (03h)
+	out	(03h),a
+
+	ld	hl, 07000h
+	call	04000h		; Play
+
+	jr	play_end
+
+se_play:
+	in	a, (03h)
+	call	04B03h		; SE Play
+	jr	play_end
+
+stop:
+	call	04003h		; Stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h), a
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(00038h), a
+	ld	hl, irq
+	ld	(00039h), hl
+
+	ret
+
+irq:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	04B00h
+	call	04006h
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret
