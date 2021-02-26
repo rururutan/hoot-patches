@@ -1,28 +1,27 @@
 # MAKO & DRI player for hoot driver ver 1.0
 
-## ����
+## 説明
 
-AliceSoft��mako.com�phoot�p�b�`�ł��B
+AliceSoftのmako.com用hootパッチです。
+既に本家の物が有りますが、これはdri.com経由でファイルにアクセスします。
 
-���ɖ{�Ƃ̕����L��܂����A�����dri.com�o�R�Ńt�@�C���ɃA�N�Z�X���܂��B
-dri�o�R�ŉ������������ƌ����܂���dri���t�b�N���ē��삷��ALSMIDI���g�p�ł��܂��B
-���ƃf�[�^�v���ŉ��t����������������L������ɖ�܂��B
-
-
-## �K�v�ȕ�
-
-* hoot�{��
-* ���̃p�b�`
-* �Q�[���̃f�[�^(mako.com, dri.com���܂�)
-* ALSMIDI�֘A�ꎮ
-* ���̃Q�[���ɑΉ�����A(B)MUS.MDA
-* (�K�v�Ȃ��)A(B)MUS.DAT�̃p�b�`
+* dri.comをフックして動作するALSMIDIが使用してMIDI演奏が出来ます。
+* データ要因で演奏がおかしい乙女戦記が正常に鳴ります。
 
 
-## ���ӓ_
+## 必要な物
 
-�{�ƃp�b�`��XML�̃t�@�C���ԍ����قȂ�܂��B
-FM�ł��x�[�X�ɂ���XML�������Ƃ��͒��ӂ��ĉ������B
+* このパッチ
+* ゲームのデータ(mako.com, dri.comを含む)
+* [ALSMIDI](http://hp.vector.co.jp/authors/VA004111/filelist.htm)関連一式
+* そのゲームに対応したA(B)MUS.MDA
+* (必要ならば)A(B)MUS.DATのパッチ
 
-Rance3��AMUS.DAT�ABMUS.DAT��2�𗘗p���镨�͎g���񂵂͏o���܂���B1���珑���ĉ�����
+
+## 注意点
+
+本家パッチとXMLのファイル番号が異なります。
+既存のFM音源版をベースにしてXMLを書くときは注意して下さい。
+
+Rance3等AMUS.DAT、BMUS.DATの2つを利用する物は使い回しは出来ません。1から書いて下さい
 

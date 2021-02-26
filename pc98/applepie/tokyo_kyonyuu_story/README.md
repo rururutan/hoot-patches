@@ -1,3 +1,3 @@
-# 今日もキャンパス花乱満 (Computer Brain)
+# E東京巨乳ストーリー
 
 N88 Basicフォーマットなのでn88file [filename] -v -bで切り出して下さい

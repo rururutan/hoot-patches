@@ -1,8 +1,8 @@
-# Super Real Majang P4 for PC9821 (Ving)
+# Super Real Mahjong P4 for PC9821 (Ving)
 
-## ���l
+## 備考
 
-�h���C�o�[�̃o�O��hoot��œ��삵�Ȃ��̂Ńp�b�`�𓖂Ă܂��B
+ドライバーのバグでhoot上で動作しないのでパッチを当てます。
 
 00001755: B4 EB
 00001756: 52 24
