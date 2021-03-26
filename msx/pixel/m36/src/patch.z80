@@ -1,13 +1,13 @@
-; 生命惑星M36 (c)Pixel 用
-; (C) RuRuRu
-; 2010/10/01 1st Release
+; 生命惑星M36 (c)Pixel
+;
+; @autor RuRuRu
+; @date 2010/10/01 1st Release
+; @date 2021/03/25 Remake
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
-
-; メインループ
+stack:	equ	0f380h
 
 main:
 	di
@@ -17,28 +17,30 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; Key wait
 	or	a
 	jr	z,loop
 
 	cp	01h
 	jr	nz,stop
 
-	call	play_stop
+	ld	a, (04h)	; stop flag
+	cp	01h
+	call	z,play_stop
 
 	in	a, (03h)	; Code No.
 	call	04406h
 	jr	play_end
 
 play_stop:
-	call	072A2h
+	call	072A2h		; stop
 	ret
 
 stop:
 	call	play_stop
 
 play_end:
-	xor	a		; hoot status変更
+	xor	a		; Change hoot status
 	out	(02h),a
 	jr	loop
 
@@ -48,13 +50,16 @@ init:
 	ld	hl, irq
 	ld	(0FDA0h),hl
 
-	ld	a,0FFH
-	call	04406H
-	call	072A2h
+	call	042D7h		; work clear
+	ld	a,003H
+	ld	(0C001H),a	; initialize bank no
+
+	ld	a, 0FFh		; stop code
+	call	04406h		; req
+	call	072A2h		; stop
+	call	04299h		; init
 	ret
 
 irq:
-	di
-	call	0405Eh
-	ei
+	call	04014h
 	ret
