@@ -76,14 +76,14 @@ mustbl:
 	dw	0B257h
 	dw	0B8A3h
 	dw	0B8BAh
-;	dw	0B8E6h
-;	dw	0B8FBh
-;	dw	0B915h
-	dw	0B937h	; ok
-;	dw	0B955h
-	dw	0B974h	; ok
-	dw	0B999h	; ok
-;	dw	0B9A8h
-	dw	0B9CAh	; ok
-	dw	0B9E9h	; ok
+	dw	0B8E6h
+	dw	0B8FBh
+	dw	0B915h
+	dw	0B937h
+	dw	0B955h
+	dw	0B974h
+	dw	0B999h
+	dw	0B9A8h	; 10
+	dw	0B9CAh
+	dw	0B9E9h
 	dw	00000h
