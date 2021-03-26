@@ -1,13 +1,13 @@
-; 麻雀悟空 (c)Chatnoir 用
-; (C) RuRuRu
-; 2010/06/22 1st Release
+; 麻雀悟空 (c)Chatnoir
+;
+; @autor RuRuRu
+; @date 2010/06/22 1st Release
+; @date 2021/03/24 Support PCM
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
-
-; メインループ
+stack:	equ	0f380h
 
 main:
 	di
@@ -17,7 +17,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; Key wait
 	or	a
 	jr	z,loop
 
@@ -26,11 +26,18 @@ loop:
 
 ; play
 	call	051CCh		; Stop
+	halt
 
-	di
 	in	a,(03h)		; Code No.
+	cp	010H
+	jp	nc,play_pcm
+
 	call	05160h
-	ei
+	jr	play_end
+
+play_pcm:
+	sub	10h
+	call	05403h
 	jr	play_end
 
 stop:
@@ -39,7 +46,7 @@ stop:
 	ei
 
 play_end:
-	xor	a		; hoot status変更
+	xor	a		; Change hoot status
 	out	(02h),a
 	jr	loop
 
