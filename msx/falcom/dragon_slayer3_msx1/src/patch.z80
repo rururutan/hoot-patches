@@ -1,0 +1,102 @@
+; Dragon Slayer Jr MSX1 (c)Falcom
+;
+; @autor RuRuRu
+; @date 2021/03/26 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f100h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+	cp	02h
+	jr	z,play_fanfare
+
+	ld	a, (drv_kind)
+	cp	01
+	call	z,drv_init
+
+	in	a,(03h)		; Code No.
+	ld	(0F126h),a
+	call	07A25h		; sound init
+	jp	play_end
+
+play_fanfare:
+	ld	a,01
+	ld	(drv_kind),a
+
+	di
+	ld	hl, dummy_irq
+	ld	(0FDA0h), hl
+	ei
+
+	ld	a, 3
+	ld	(07000h),a
+	call	08381h		; Fanfare
+	ld	a, 1
+	ld	(07000h),a
+	jp	play_end
+
+play_se:
+	in	a,(03h)
+	ld	(0F11Bh), a
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+play_stop:
+	call	drv_init
+	ret
+
+stop:
+	call	play_stop
+	jp	play_end
+
+init:
+	call	drv_init
+	ret
+
+drv_init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 07939h
+	ld	(0FDA0h), hl
+
+	ld	a, 7
+	ld	(07000h),a
+	ld	hl,07A63h
+	ld	de,0F100h
+	ld	bc,00229h
+	ldir
+	ld	a, 1
+	ld	(07000h),a
+
+	xor	a
+	ld	(drv_kind),a
+	ret
+
+dummy_irq:
+	ret
+
+drv_kind:
+	db	00h
