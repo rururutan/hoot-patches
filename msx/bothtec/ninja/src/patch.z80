@@ -2,13 +2,13 @@
 ;
 ; @autor RuRuRu
 ; @date 2010/11/21 1st Release
+; @date 2021/09/24 Fix music address
 ;
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
-mdata:	equ	08900h		; 曲データアドレス
+stack:	equ	0f380h
 
 main:
 	di
@@ -19,7 +19,7 @@ main:
 	jp	loop
 
 loop:
-	in	a, (02h)	; キー入力待ち
+	in	a, (02h)	; Wait for event
 	or	a
 	jr	z, loop
 
@@ -43,7 +43,7 @@ loop:
 	inc	hl
 	push	de
 	pop	hl
-	call	0B4DBh		; Music Req
+	call	0B4DBh		; Music Request
 
 	ei
 	jr	play_end
@@ -62,7 +62,7 @@ play_se:
 	inc	hl
 	push	de
 	pop	hl
-	call	0B4EDH		; SE Req
+	call	0B4EDH		; SE Request
 	ei
 	jr	play_end
 
@@ -72,7 +72,7 @@ stop:
 	ei
 
 play_end:
-	xor	a		; 停止処理
+	xor	a		; Change status of hoot
 	out	(02h), a
 	jr	loop
 
@@ -83,20 +83,24 @@ init:
 	ret
 
 mustbl:
-	dw	0B925H		; 00
+	dw	0BA63H		; 00
+	dw	0BB8BH
+	dw	0BC09H
+	dw	0B842H
+	dw	0B925H		; 04
 	dw	0C69CH
 	dw	0BE44H
 	dw	0C20CH
-	dw	0BCA8H
+	dw	0BCA8H		; 08
 	dw	0BB40H
 	dw	0C403H
 	dw	0C33DH
-	dw	0C50CH		; 08
+	dw	0C50CH		; 0C
 	dw	0C4D4H
 	dw	0C5FEH
 	dw	0BD63H
 	dw	0BE8BH
-	dw	0BDC4H		; 0D
+	dw	0BDC4H		; 11
 
 setbl:
 	dw	0C2AFH		; 00
