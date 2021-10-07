@@ -1,0 +1,116 @@
+; 忍者・影 (c)Hudson/ASCII 1984
+;
+; @autor RuRuRu
+; @date 2021/03/25 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f300h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(03h)
+	cp	03h
+	jr	nc,play_se
+
+	ld	h,000H
+	ld	c,a
+	add	a,a
+	add	a,c
+	ld	l,a
+	ld	de,bgmtbl
+	add	hl,de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	b,(hl)
+	push	de
+	pop	hl
+
+	push	bc
+	push	hl
+	call	05E24h
+	pop	hl
+	pop	bc
+	ld	(0E52Ah),hl
+
+;	ld	b,048h
+slp1:
+	halt
+	halt
+	push	bc
+	call	05D47h	; BGM
+	pop	bc
+	djnz	slp1
+
+	call	05E24h
+	jr	play_end
+
+
+play_se:
+	ld	hl, play_end
+	push	hl
+
+	in	a,(03h)
+	sub	03h
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,setbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	jp	(hl)
+
+stop:
+	call	0090h		; Stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	call	090h
+	call	05F90h	; work clear
+	call	05FDCh	; init
+	ret
+
+bgmtbl:
+	dw	05F0Ah	; data
+;	db	02Dh	; loop num
+	db	02bh	; ソフトループをhaltで回してるので調整
+	dw	05F1Ah
+;	db	030h
+	db	02eh
+	dw	05F2Ah
+;	db	048h
+	db	045h
+
+setbl:
+	dw	04F4Ch
+	dw	053B6h
+	dw	05D9Ch
+	dw	05DB5h
+	dw	05DCEh
+	dw	05DE7h
+	dw	05D6Ah	; 影参上
+	dw	05D77h	; さらばじゃ
