@@ -1,0 +1,8 @@
+md mus
+cd mus
+
+bcut ..\RM3_1.DSK DRIVER.BIN 0x1c400 0x3400
+bcut ..\RM3_2.DSK DRIVER2.BIN 0xd400 0x3400
+bcut ..\RM3_3.DSK DRIVER4.BIN 0xd400 0x3400
+
+cd ..

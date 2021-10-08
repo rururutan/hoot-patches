@@ -1,0 +1,69 @@
+; 魔王ゴルベリアス (c)Compile
+;
+; @autor RuRuRu
+; @date 2010/06/09 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0e000h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Wait for event
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)		; flag
+	cp	01h
+	jr	nz,play
+
+	call	0851Ch		; Stop
+
+play:
+	in	a,(03h)		; Code No.
+
+	di
+	call	08538h		; Play
+	ei
+
+	jr	play_end
+
+stop:
+	di
+	call	0851Ch		; Stop
+	ei
+
+play_end:
+	xor	a		; Change status of hoot
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+; Bank
+	ld	a,001H
+	ld	(07000H),a	; 8000-BFFF
+
+; Init
+	call	08518h
+	ret
+
+irq:
+	call	0801BH
+	ret

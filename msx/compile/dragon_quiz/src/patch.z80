@@ -1,0 +1,161 @@
+; Dragon Quiz (c)Compile
+;
+; @autor RuRuRu
+; @date 2012/12/03 1st Release
+;
+
+	cseg
+	org	0f000h
+
+stack:	equ	0f580h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Wait for event
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+
+	in	a, (03h)	; Code No.
+	push	af
+
+	di
+	call	01D31h		; Stop
+	in	a,(04h)
+	out	(03h),a
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	push	hl
+	push	hl
+	pop	de
+	ld	hl, 0C000h
+	ld	bc, 03000h
+	ldir
+	pop	hl
+	ld	a, 03h
+	call	01C27h
+	ei
+
+	pop	af
+	call	01D6Dh		; Req
+
+	jr	play_end
+
+stop:
+	di
+	call	01D31h		; Stop
+	ei
+
+play_end:
+	xor	a		; Change status of hoot
+	out	(02h), a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0038h), a
+	ld	(001Ch), a
+
+	ld	hl, timer
+	ld	(0039h), hl
+
+	ld	hl, calslt
+	ld	(001Dh), hl
+
+; Init
+
+	in	a, (07h)
+	cp	00
+	jr	z, dev_psg
+	ld	a, 080h
+	jr	init_end
+dev_psg:
+	xor	a
+init_end:
+	call	01C27h		; init
+	ld	a, 01h
+	call	01C27h		; init
+
+	ret
+
+calslt:
+	ret
+;	jp	(ix)
+
+timer:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	00E40H
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret
+
+mustbl:
+	dw	625Ch	;62e8h 00
+	dw	50DCh	;5168h
+	dw	882Fh	;88bbh
+	dw	897Eh	;8a0ah
+	dw	8E60h	;8eech
+	dw	8AF0h	;8b7ch
+	dw	4CC4h	;4d50h
+	dw	8BC4h	;8c50h
+	dw	88B9h	;8945h
+	dw	8C97h	;8d23h
+	dw	89E7h	;8a73h
+	dw	47B3h	;483fh
+
+; 以下ダブリデータ
+
+	dw	508Eh	;511Ah
+	dw	47B3h	;483Fh
+	dw	8BC4h	;8C50h
+	dw	88B7h	;8943h
+	dw	8C9Eh	;8D2Ah
+	dw	89BCh	;8A48h
+	dw	5D81h	;5E0Dh
+	dw	897Fh	;8A0Bh
+	dw	8E60h	;8EECh
+	dw	8AF2h	;8B7Eh
+	dw	8BC4h	;8C50h
+	dw	88B9h	;8945h
+	dw	8C97h	;8D23h
+	dw	89E7h	;8A73h

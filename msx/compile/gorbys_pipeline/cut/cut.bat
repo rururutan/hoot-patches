@@ -1,0 +1,5 @@
+md mus
+cd mus
+bcut ..\GORBYPL.DSK DRIVER.BIN 0x0B0000 0x2000
+bcut ..\GORBYPL.DSK DATA.BIN 0x08000 0x2400
+cd ..
