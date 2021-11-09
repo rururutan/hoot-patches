@@ -1,0 +1,63 @@
+; Girly Block (c)The Links/Compile
+;
+; @autor RuRuRu
+; @date 2010/04/20 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Wait for event
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	nz,no_stop
+
+	call	07D2Ch		; Stop
+
+no_stop:
+	in	a,(03h)
+	call	07D41h		; Play
+
+	xor	a
+	out	(02h),a
+	jr	loop
+
+stop:
+	call	07D2Ch		; Stop
+;	call	07D59h		; Stop
+;	call	07D6Ah		; Stop
+
+	xor	a		; Change status of hoot
+	out	(02h),a
+	jr	loop
+
+init:
+
+; timer entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 08000h
+	ld	(0FDA0h), hl
+
+	ld	a, 01h
+	call	07F16h
+
+	call	07D1Bh		; Sound Init
+
+	ret
+
