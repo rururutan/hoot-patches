@@ -1,0 +1,122 @@
+; 湘南伝説 (c)Victor
+;
+; @autor RuRuRu
+; @date 2022/01/30 1st Release
+;
+
+	cseg
+	org	0C000h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,play_stop
+
+	in	a,(03h)
+	out	(03h), a
+	ld	hl, 09452h
+	call	014A6h
+	jp	play_end
+
+play_stop:
+	call	01517h
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(001Ch), a
+	ld	(0038h), a
+	ld	(0093h), a
+	ld	(1247h),a
+	ld	hl, calslt
+	ld	(001Dh), hl
+	ld	hl, irq
+	ld	(0039h), hl
+	ld	hl, psgw
+	ld	(0094h), hl
+
+	ld	hl, opllw
+	ld	(1248h), hl	; opll write patch 1247h
+	ld	a, 0c9h
+	ld	(124ah), a
+
+	in	a,(07h)		; Get hoot's device info(01:opll)
+	and	01h
+	jp	z,devpsg
+	ld	a, 000h
+	jp	init_flag
+devpsg:
+	ld	a, 0FFh
+init_flag:
+	ld	(0A1D8h), a	; FF:psg 00:opll
+	call	0151Dh
+	ret
+
+calslt:
+	jp	(ix)
+
+psgw:
+	di
+	out     (0A0h),a
+	push    af
+	ld      a,e
+	out     (0A1h),a
+	ei
+	pop     af
+	ret
+
+opllw:
+	out     (07Ch),a
+	push    af
+	ld      a,e
+	out     (07Dh),a
+	pop     af
+	ret
+
+irq:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	di
+	call	126Bh
+	ei
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret
+
