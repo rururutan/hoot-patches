@@ -1,14 +1,15 @@
-; Marchen Veil (c)System Sacom
+; Märchen Veil I (メルヘンヴェール) for MSX2 (c)System Sacom
 ;
 ; @autor RuRuRu
 ; @date 2011/01/12 1st Release
+; @date 2021/02/11 Support sound effect
 ;
 
 	cseg
 	org	00400h
 
-stack:	equ	0f380h		; スタックエリア
-mdata:	equ	04A00h		; 曲データアドレス
+stack:	equ	0f380h
+mdata:	equ	04A00h		; Music data address (MAIN.BIN)
 
 main:
 	di
@@ -20,7 +21,7 @@ main:
 
 loop:
 	call	chk_loop
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; Waiting for input
 	or	a
 	jr	z,loop
 
@@ -28,13 +29,18 @@ loop:
 	jr	nz,stop
 
 ;======================================
-; 演奏開始
+; Play request
 ;======================================
-	call	stop_drv	; 前のドライバの停止
+	in	a,(03h)
+	cp	80h
+	jr	nc,play_se
+
+	call	stop_drv	; Stop (prev driver)
 
 	in	a,(04h)
 	ld	(flgdrv),a
-	call	stop_drv	; 指定ドライバの停止
+
+	call	stop_drv	; Stop & Initialize (current driver)
 
 	push	af
 	ld	a, 01h
@@ -45,23 +51,36 @@ loop:
 	jr	nz,play_main
 
 	call	play_vis
-	jr	stop_end
+	jr	play_end
 
 ;======================================
-; MAIN.BIN演奏
+; MAIN.BIN: Play request
 ;======================================
 
 play_main:
+	call	0944Ah		; Initialzie
 	di
 	in	a,(03h)
-	out	(03h),a		; 曲データを読み込む
+	out	(03h),a		; Load music data
 	ei
 	call	08F0Dh
 	jr	loop
 
+;======================================
+; MAIN.BIN: Play request SE
+;======================================
+play_se:
+	ld	a,(flgdrv)
+	cp	01
+	jr	nz, loop
+
+	in	a,(03h)
+	call	0C5B9h
+	jr	play_end
+
 
 ;======================================
-; 演奏停止
+; Stop
 ;======================================
 stop:
 	xor	a
@@ -69,16 +88,16 @@ stop:
 
 	call	stop_drv
 
-stop_end:
-	xor	a		; 停止処理
+play_end:
+	xor	a		; Change status
 	out	(02h),a
 	jr	loop
 
 ;======================================
-; 初期化
+; VISSTG.BIN: Initialize
 ;======================================
 init:
-	call	07EB8h		; Init
+	call	07EB8h		; Initialize
 
 	ld	a, 0C9h
 	ld	(06B59h), a
@@ -87,7 +106,7 @@ init:
 	ret
 
 ;======================================
-; VISSTG.BIN演奏
+; VISSTG.BIN: Play request
 ;======================================
 play_vis:
 	in	a,(05h)
@@ -109,7 +128,7 @@ vis_end:
 	ret
 
 ;======================================
-; ループチェック
+; VISSTG.BIN: Check loop
 ;======================================
 chk_loop:
 	ld	a,(flgplay)
@@ -136,7 +155,7 @@ chk_main:
 	ret
 
 ;======================================
-; 停止
+; Driver release
 ;======================================
 stop_drv:
 	push	af
@@ -146,7 +165,7 @@ stop_drv:
 	jr	nz, mainstop
 
 ;======================================
-; VISSTG.BIN用停止
+; VISSTG.BIN: stop
 ;======================================
 	call	07F06h
 	call	07EB8h		; Stop
@@ -156,7 +175,7 @@ stop_drv:
 	jp	stopend
 
 ;======================================
-; MAIN.BIN用停止
+; MAIN.BIN: stop
 ;======================================
 mainstop:
 	call	08F13h		; Stop
@@ -169,7 +188,7 @@ stopend:
 	ret
 
 flgdrv:
-	db	00h
+	db	00h		; 00:vistg / 01:main
 flgplay:
 	db	00h
 flgloop:
