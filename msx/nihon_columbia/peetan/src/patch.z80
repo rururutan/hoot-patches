@@ -1,0 +1,116 @@
+; Peetan (c)Nihon Columbia (CRC32:941069ae)
+;
+; @autor RuRuRu
+; @date 2011/05/09 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f370h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Waiting for input
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a, (04h)
+	cp	01h
+	jr	z, play_start
+
+	call	play_stop
+
+play_start:
+	di
+
+	in	a, (03h)	; Code No.
+	add	a, a		; x2
+	ld	b, a
+	add	a, a		; x4
+	add	a, b		; x6
+	ld	e, a
+	ld	d, 00h
+	ld	hl, mustbl
+	add	hl, de
+	xor	a
+	ld	c, a
+	ld	b, 03h
+pllp:
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	inc	hl
+	ld	a,d
+	cp	00h
+	jr	z,ignr
+	push	bc
+	push	hl
+	ld	b, c		; ch no
+	call	091D7h		; Sound Req
+	pop	hl
+	pop	bc
+ignr:
+	inc	c
+	djnz	pllp
+
+	ei
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	091FEh
+	ret
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 09236h	; sound irq
+	ld	(0FDA0h), hl
+
+	ret
+
+mustbl:
+	dw	00000h
+	dw	09FD9h
+	dw	09FE9h
+
+	dw	00000h
+	dw	09E77h
+	dw	09EAEh
+
+	dw	09F07h
+	dw	09F3Eh
+	dw	09F66h
+
+	dw	00000h
+	dw	09F8Eh
+	dw	09F9Eh
+
+	dw	00000h
+	dw	00000h
+	dw	09EF1h
+
+	dw	09FB7h
+	dw	00000h
+	dw	00000h
+
+	dw	00000h
+	dw	09ED9h
+	dw	00000h
+
