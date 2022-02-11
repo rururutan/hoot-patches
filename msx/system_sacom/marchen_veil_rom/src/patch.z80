@@ -16,12 +16,16 @@ main:
 	ei
 
 loop:
+	call	chk_loop
 	in	a,(02h)		; Key wait
 	or	a
 	jr	z,loop
 
 	cp	01h
 	jr	nz,stop
+
+	in	a,(04h)
+	ld	(flgloop),a
 
 	in	a,(03h)		; Code No.
 	cp	80h
@@ -31,6 +35,9 @@ loop:
 
 	call	04559h		; Request music
 	call	0454Fh		; Start
+
+	ld	a, 01h
+	ld	(flgplay),a
 	jp	play_end
 
 play_se:
@@ -44,6 +51,7 @@ play_end:
 play_stop:
 	push	af
 	xor	a
+	ld	(flgplay),a
 	call	04559h		; Request music
 	pop	af
 	ret
@@ -52,9 +60,26 @@ stop:
 	call	play_stop
 	jp	play_end
 
+chk_loop:
+	ld	a,(flgplay)
+	cp	0
+	jr	z,chk_end
+
+	ld	a,(flgloop)
+	cp	1
+	jr	nz,chk_end
+
+	call	0454Fh
+chk_end:
+	ret
+
 init:
 	call	045DCh
 	call	04919h
 
 	ret
 
+flgplay:
+	db	00h
+flgloop:
+	db	01h
