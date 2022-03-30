@@ -1,7 +1,0 @@
-md mus
-cd mus
-
-bcut ..\URANAI.DSK DRIVER.BIN 0x03200 0x4000
-bcut ..\URANAI.DSK DATA.BIN 0x07200 0x0200
-
-cd ..
