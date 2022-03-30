@@ -1,2 +1,0 @@
-rem 6600
-d88cut WILL.D77 DRIVER.BIN 0 3 7 0xa00
