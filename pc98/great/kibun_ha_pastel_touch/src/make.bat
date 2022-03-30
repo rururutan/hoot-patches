@@ -1,2 +1,0 @@
-set $DRIVER=pastel
-nasm -f bin -l %$DRIVER%_98.LST -o %$DRIVER%_98.BIN %$DRIVER%_98.ASM
