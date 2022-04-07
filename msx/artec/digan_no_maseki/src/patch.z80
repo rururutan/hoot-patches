@@ -1,0 +1,113 @@
+; ディガンの魔石 (c)Artec
+; (C) RuRuRu
+; 2022/04/08 1st Release
+
+	cseg
+	org	0e000h
+
+stack:	equ	0f300h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	ld	a, 0C9h
+	ld	(038h), a
+
+	call	mute
+
+	di
+	in	a,(03h)		; Code No.
+	out	(03h), a
+	ld	(nowcode), a
+	ei
+
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+
+	ld	de,play_end
+	push	de
+	jp	(hl)
+
+stop:
+	di
+	ld	a, 0C9h
+	ld	(038h), a
+	call	mute
+
+	ld	a, (nowcode)
+	cp	0FFh
+	jr	z, play_end
+
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,stoptbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	ld	de,play_end
+	push	de
+	ei
+	jp	(hl)
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+mute:
+	ld	a, 04h		; 初期化足りないレジスタのみ
+	out	(0A0h),a
+	ld	a, 000h
+	out	(0A1h),a
+	ld	a, 05h
+	out	(0A0h),a
+	ld	a, 000h
+	out	(0A1h),a
+	ld	a, 07h
+	out	(0A0h),a
+	ld	a, 0B8h
+	out	(0A1h),a
+	ret
+
+init:
+	ld	a, 0C9h
+	ld	(038h), a
+	ret
+
+mustbl:
+	dw	00CF2h		; OPEN.COM
+	dw	01BB0h		; STOPEN.COM
+	dw	01E02h		; ST.COM
+	dw	00E4Ah		; ENDDING.COM
+
+stoptbl:
+	dw	01454h		; OPEN.COM
+	dw	02036h		; STOPEN.COM
+	dw	0224Dh		; ST.COM
+	dw	01343h		; ENDDING.COM
+
+nowcode:
+	db	0FFh
