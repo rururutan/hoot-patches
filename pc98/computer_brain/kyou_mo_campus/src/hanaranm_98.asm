@@ -1,5 +1,6 @@
-; ¡“ú‚àƒLƒƒƒ“ƒpƒX‰Ô—–ž (C)ComputerBrain —p
-; ƒƒCƒ“ƒ‹[ƒ`ƒ“ (for NASM)
+; ä»Šæ—¥ã‚‚ã‚­ãƒ£ãƒ³ãƒ‘ã‚¹èŠ±ä¹±æº€ (C)ComputerBrain ç”¨
+; (C) RuRuRu
+; 2015/08/30 1st Release
 
 %include 'hoot.inc'
 
@@ -7,13 +8,13 @@
 		USE16
 		CPU	186
 
-OPNSEG		EQU	0x8000			; ƒhƒ‰ƒCƒoƒZƒOƒƒ“ƒg
+OPNSEG		EQU	0x8000			; ãƒ‰ãƒ©ã‚¤ãƒã‚»ã‚°ãƒ¡ãƒ³ãƒˆ
 
 start:
 		cli
 		cld
 		mov	dx,HOOTFUNC
-		mov	al,HF_DISABLE		; ‰Šú‰»’†‚ÍhootŒÄ‚Ño‚µ‚ð‹ÖŽ~
+		mov	al,HF_DISABLE		; åˆæœŸåŒ–ä¸­ã¯hootå‘¼ã³å‡ºã—ã‚’ç¦æ­¢
 		out	dx,al
 
 		xor	ax,ax
@@ -27,7 +28,7 @@ start:
 		mov	[di+02], cs
 		mov	[di+06], cs
 
-		; hoot ƒhƒ‰ƒCƒo“o˜^
+		; hoot ãƒ‰ãƒ©ã‚¤ãƒç™»éŒ²
 		xor	ax,ax
 		mov	ds,ax
 		mov	word [0x7f*4+0],hf_entry
@@ -37,7 +38,7 @@ start:
 		call	word OPNSEG:0x0000	; Initialize
 
 		mov	dx,HOOTFUNC
-		mov	al,HF_ENABLE		; hootŒÄ‚Ño‚µ‚ð‹–‰Â
+		mov	al,HF_ENABLE		; hootå‘¼ã³å‡ºã—ã‚’è¨±å¯
 		out	dx,al
 		sti
 
@@ -46,11 +47,11 @@ mainloop:
 		int	0x18
 		jmp	short mainloop
 
-; hoot‚©‚çƒR[ƒ‹‚³‚ê‚é
-; inp8(HOOTPORT) = 0 ¨ PC98VX::Play  ƒ[ƒh‘O
-; inp8(HOOTPORT) = 1 ¨ PC98VX::Play  ƒ[ƒhŒã
-; inp8(HOOTPORT) = 2 ¨ PC98VX::Stop
-; _code = inp8(HOOTPORT+2)`inp8(HOOTPORT+5)
+; hootã‹ã‚‰ã‚³ãƒ¼ãƒ«ã•ã‚Œã‚‹
+; inp8(HOOTPORT) = 0 â†’ PC98VX::Play  ãƒ­ãƒ¼ãƒ‰å‰
+; inp8(HOOTPORT) = 1 â†’ PC98VX::Play  ãƒ­ãƒ¼ãƒ‰å¾Œ
+; inp8(HOOTPORT) = 2 â†’ PC98VX::Stop
+; _code = inp8(HOOTPORT+2)ï½žinp8(HOOTPORT+5)
 
 hf_entry:
 ;		pusha

@@ -1,4 +1,6 @@
 ; The Magic Candle
+; (C) RuRuRu
+; 2019/05/23 1st Release
 ;
 
 %include 'hoot.inc'

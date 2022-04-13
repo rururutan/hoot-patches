@@ -1,5 +1,6 @@
 ; SND7.COM / PACMAIN.COM(CRC32:0xe1956223)演奏
-; メインルーチン (for pc98dos)
+; (C) RuRuRu
+; 2018/02/17 1st Release
 ;
 
 %include 'hoot.inc'

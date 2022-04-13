@@ -1,4 +1,7 @@
 ; Chime's Quest RPG.EXE(CRC32:0xc459b6d1)演奏
+; (C) RuRuRu
+; 2018/08/26 1st Release
+;
 ; hoot 2018/12版以降で動作
 ;
 

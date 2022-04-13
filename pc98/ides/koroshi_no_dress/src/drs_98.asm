@@ -1,9 +1,10 @@
-; DRSMUS.EXE ‰‰‘t
-; ƒƒCƒ“ƒ‹[ƒ`ƒ“ (for pc98dos)
+; DRSMUS.EXE æ¼”å¥
+; (C) RuRuRu
+; 2008/07/02 1st Release
 ;
-; HOOTPORT + 2~3 : ƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹”Ô†
-; HOOTPORT + 4   : ‹È”Ô†
-; HOOTPORT + 5   : ƒ‹[ƒv—L–³
+; HOOTPORT + 2â€¾3 : ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒ³ãƒ‰ãƒ«ç•ªå·
+; HOOTPORT + 4   : æ›²ç•ªå·
+; HOOTPORT + 5   : ãƒ«ãƒ¼ãƒ—æœ‰ç„¡
 ;
 
 %include 'hoot.inc'
@@ -21,10 +22,10 @@ start:
 		mov	es, ax
 
 		mov	dx, HOOTFUNC
-		mov	al, HF_DISABLE		; ‰Šú‰»’†‚ÍhootŒÄ‚Ño‚µ‚ð‹ÖŽ~
+		mov	al, HF_DISABLE		; åˆæœŸåŒ–ä¸­ã¯hootå‘¼ã³å‡ºã—ã‚’ç¦æ­¢
 		out	dx, al
 
-		mov	ax, cs			; ƒXƒ^ƒbƒNÝ’è
+		mov	ax, cs			; ã‚¹ã‚¿ãƒƒã‚¯è¨­å®š
 		mov	ss, ax
 		mov	sp, stack
 
@@ -34,25 +35,25 @@ start:
 		mov	ah, 0x4a		; AH=4a modify alloc memory(ES:BX)
 		int	0x21
 
-		mov	ah, 0x25		; hootƒhƒ‰ƒCƒo“o˜^
+		mov	ah, 0x25		; hootãƒ‰ãƒ©ã‚¤ãƒç™»éŒ²
 		mov	al, int_hoot
 		mov	dx, vect_hoot
 		int	0x21
 
 		mov	dx, HOOTFUNC
-		mov	al, HF_ENABLE		; hootŒÄ‚Ño‚µ‚ð‹–‰Â
+		mov	al, HF_ENABLE		; hootå‘¼ã³å‡ºã—ã‚’è¨±å¯
 		out	dx, al
 		sti
 
 mainloop:
-		mov	ax, 0x9801		; ƒ_ƒ~[ƒ|[ƒŠƒ“ƒO
+		mov	ax, 0x9801		; ãƒ€ãƒŸãƒ¼ãƒãƒ¼ãƒªãƒ³ã‚°
 		int	0x18
 		jmp	short mainloop
 
-; hoot‚©‚çƒR[ƒ‹‚³‚ê‚é
-; inp8(HOOTPORT) = 0 ¨ PC98DOS::Play
-; inp8(HOOTPORT) = 2 ¨ PC98DOS::Stop
-; _code = inp8(HOOTPORT+2)`inp8(HOOTPORT+5)
+; hootã‹ã‚‰ã‚³ãƒ¼ãƒ«ã•ã‚Œã‚‹
+; inp8(HOOTPORT) = 0 â†’ PC98DOS::Play
+; inp8(HOOTPORT) = 2 â†’ PC98DOS::Stop
+; _code = inp8(HOOTPORT+2)ã€œinp8(HOOTPORT+5)
 
 vect_hoot:
 		pusha
@@ -75,13 +76,13 @@ vect_hoot:
 
 .stop:
 .fadeout:
-		mov	al, 0x01		; ’âŽ~
+		mov	al, 0x01		; åœæ­¢
 		int	int_driver
 		jmp	short .ed
 
 
 .play:
-		mov	al, 0x01		; ’âŽ~
+		mov	al, 0x01		; åœæ­¢
 		int	int_driver
 
 		mov	ah, 0x3f		; AH=3F conin read
@@ -94,16 +95,16 @@ vect_hoot:
 		mov	[filename+bx], byte 0
 
 		mov	bx, filename
-		mov	al, 0x00		; ƒtƒ@ƒCƒ‹ƒ[ƒh[DS:BX] & Ä¶
+		mov	al, 0x00		; ãƒ•ã‚¡ã‚¤ãƒ«ãƒ­ãƒ¼ãƒ‰[DS:BX] & å†ç”Ÿ
 		int	int_driver
 
 		jmp	.ed
 
 filename:
-		times 0x50 db 0x00		; ƒtƒ@ƒCƒ‹–¼Ši”[—pƒoƒbƒtƒ@
+		times 0x50 db 0x00		; ãƒ•ã‚¡ã‚¤ãƒ«åæ ¼ç´ç”¨ãƒãƒƒãƒ•ã‚¡
 
 		align	0x10
-		times 0x100 db 0xff		; ƒXƒ^ƒbƒNƒGƒŠƒA
+		times 0x100 db 0xff		; ã‚¹ã‚¿ãƒƒã‚¯ã‚¨ãƒªã‚¢
 
 stack:
 

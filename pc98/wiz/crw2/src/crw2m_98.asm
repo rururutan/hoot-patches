@@ -1,4 +1,6 @@
 ; CRW2 ARC_DRV.EXE
+; (C) RuRuRu
+; 2022/04/13 1st Release
 ;
 
 %include 'hoot.inc'

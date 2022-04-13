@@ -1,7 +1,8 @@
-; ASCII SDD_2/MUSE2/MUSE3/NMUSE.DRV ‰‰‘t
-; ƒƒCƒ“ƒ‹[ƒ`ƒ“ (for pc98dos)
+; ASCII SDD_2/MUSE2/MUSE3/NMUSE.DRV æ¼”å¥
+; (C) RuRuRu
+; 2008/09/30 1st Release
 ;
-; HOOTPORT + 2~3 : ƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹”Ô†
+; HOOTPORT + 2~3 : ãƒ•ã‚¡ã‚¤ãƒ«ãƒãƒ³ãƒ‰ãƒ«ç•ªå·
 ; HOOTPORT + 5   : SE(01) / SOUND(00)
 ;
 
@@ -20,10 +21,10 @@ start:
 		mov	es, ax
 
 		mov	dx, HOOTFUNC
-		mov	al, HF_DISABLE		; ‰Šú‰»’†‚ÍhootŒÄ‚Ño‚µ‚ğ‹Ö~
+		mov	al, HF_DISABLE		; åˆæœŸåŒ–ä¸­ã¯hootå‘¼ã³å‡ºã—ã‚’ç¦æ­¢
 		out	dx, al
 
-		mov	ax, cs			; ƒXƒ^ƒbƒNİ’è
+		mov	ax, cs			; ã‚¹ã‚¿ãƒƒã‚¯è¨­å®š
 		mov	ss, ax
 		mov	sp, stack
 
@@ -38,7 +39,7 @@ start:
 		int	0x21
 		mov	[bufseg],ax
 
-		cmp	byte [0x80],0x00	; ƒRƒ}ƒ“ƒhƒ‰ƒCƒ“‚ª‚È‚ñ‚ç‚©—L‚ê‚Î
+		cmp	byte [0x80],0x00	; ã‚³ãƒãƒ³ãƒ‰ãƒ©ã‚¤ãƒ³ãŒãªã‚“ã‚‰ã‹æœ‰ã‚Œã°
 		jnz	.beep
 		mov	bx, 0x52		; FM
 		jmp	.getdev
@@ -75,25 +76,25 @@ start:
 		call	sub_output
 
 .redist:
-		mov	ah, 0x25		; hootƒhƒ‰ƒCƒo“o˜^
+		mov	ah, 0x25		; hootãƒ‰ãƒ©ã‚¤ãƒç™»éŒ²
 		mov	al, int_hoot
 		mov	dx, vect_hoot
 		int	0x21
 
 		mov	dx, HOOTFUNC
-		mov	al, HF_ENABLE		; hootŒÄ‚Ño‚µ‚ğ‹–‰Â
+		mov	al, HF_ENABLE		; hootå‘¼ã³å‡ºã—ã‚’è¨±å¯
 		out	dx, al
 		sti
 
 mainloop:
-		mov	ax, 0x9801		; ƒ_ƒ~[ƒ|[ƒŠƒ“ƒO
+		mov	ax, 0x9801		; ãƒ€ãƒŸãƒ¼ãƒãƒ¼ãƒªãƒ³ã‚°
 		int	0x18
 		jmp	short mainloop
 
-; hoot‚©‚çƒR[ƒ‹‚³‚ê‚é
-; inp8(HOOTPORT) = 0 ¨ PC98DOS::Play
-; inp8(HOOTPORT) = 2 ¨ PC98DOS::Stop
-; _code = inp8(HOOTPORT+2)`inp8(HOOTPORT+5)
+; hootã‹ã‚‰ã‚³ãƒ¼ãƒ«ã•ã‚Œã‚‹
+; inp8(HOOTPORT) = 0 â†’ PC98DOS::Play
+; inp8(HOOTPORT) = 2 â†’ PC98DOS::Stop
+; _code = inp8(HOOTPORT+2)ï½inp8(HOOTPORT+5)
 
 vect_hoot:
 		pusha
@@ -169,7 +170,7 @@ vect_hoot:
 		call	far	[cs:entofs]
 		ret
 
-; Š„‚è‚İ‚©‚çdevice driverƒZƒOƒƒ“ƒgŠ„‚èo‚µ
+; å‰²ã‚Šè¾¼ã¿ã‹ã‚‰device driverã‚»ã‚°ãƒ¡ãƒ³ãƒˆå‰²ã‚Šå‡ºã—
 ; bx : vector offset
 sub_getdev:
 		push	ds
@@ -180,7 +181,7 @@ sub_getdev:
 		mov	ds, ax
 		mov	ax, [0x08]		; Device interrupt code
 		mov	[cs:entofs], ax
-		mov	ax,entry		; RequestPacket‚Ìƒ|ƒCƒ“ƒ^‚ğ–³—‚â‚è‘‚«Š·‚¦
+		mov	ax,entry		; RequestPacketã®ãƒã‚¤ãƒ³ã‚¿ã‚’ç„¡ç†ã‚„ã‚Šæ›¸ãæ›ãˆ
 		mov	[0x12],ax
 		mov	[0x14],cs
 		pop	ds
@@ -188,7 +189,7 @@ sub_getdev:
 
 
 ;
-; device driver‚Ìoutput function‚ğƒVƒ~ƒ…ƒŒ[ƒg
+; device driverã®output functionã‚’ã‚·ãƒŸãƒ¥ãƒ¬ãƒ¼ãƒˆ
 ;
 sub_output:
 		mov	[entry_size], ax
@@ -248,7 +249,7 @@ entry_sector32:
 ;--RequestPackt End---------------------
 
 		align	0x10
-		times 0x100 db 0xff		; ƒXƒ^ƒbƒNƒGƒŠƒA
+		times 0x100 db 0xff		; ã‚¹ã‚¿ãƒƒã‚¯ã‚¨ãƒªã‚¢
 
 stack:
 

@@ -1,5 +1,6 @@
-; Liberty (C)Cocktail Soft —p
-; ƒƒCƒ“ƒ‹[ƒ`ƒ“ (for NASM)
+; Liberty (C)Cocktail Soft ç”¨
+; (C) RuRuRu
+; 2012/04/19 1st Release
 
 %include 'hoot.inc'
 
@@ -7,12 +8,12 @@
 		USE16
 		CPU	186
 
-OPNSEG		EQU	0x1ed6		; ƒI[ƒvƒjƒ“ƒO—pƒZƒOƒƒ“ƒg
+OPNSEG		EQU	0x1ed6		; ã‚ªãƒ¼ãƒ—ãƒ‹ãƒ³ã‚°ç”¨ã‚»ã‚°ãƒ¡ãƒ³ãƒˆ
 
 start:		cli
 		cld
 		mov	dx,HOOTFUNC
-		mov	al,HF_DISABLE		; ‰Šú‰»’†‚ÍhootŒÄ‚Ño‚µ‚ð‹ÖŽ~
+		mov	al,HF_DISABLE		; åˆæœŸåŒ–ä¸­ã¯hootå‘¼ã³å‡ºã—ã‚’ç¦æ­¢
 		out	dx,al
 
 		xor	ax,ax
@@ -22,13 +23,13 @@ start:		cli
 		mov	ds,ax
 		mov	es,ax
 
-		; hoot ƒhƒ‰ƒCƒo“o˜^
+		; hoot ãƒ‰ãƒ©ã‚¤ãƒç™»éŒ²
 		xor	ax,ax
 		mov	ds,ax
 		mov	word [0x7f*4+0],hf_entry
 		mov	[0x7f*4+2],cs
 
-		mov	dx,HOOTFUNC		; hootŒÄ‚Ño‚µ‚ð‹–‰Â
+		mov	dx,HOOTFUNC		; hootå‘¼ã³å‡ºã—ã‚’è¨±å¯
 		mov	al,HF_ENABLE
 		out	dx,al
 		sti
@@ -37,11 +38,11 @@ mainloop:	mov	ax,0x9801
 		int	0x18
 		jmp	short mainloop
 
-; hoot‚©‚çƒR[ƒ‹‚³‚ê‚é
-; inp8(HOOTPORT) = 0 ¨ PC98VX::Play  ƒ[ƒh‘O
-; inp8(HOOTPORT) = 1 ¨ PC98VX::Play  ƒ[ƒhŒã
-; inp8(HOOTPORT) = 2 ¨ PC98VX::Stop
-; _code = inp8(HOOTPORT+2)`inp8(HOOTPORT+5)
+; hootã‹ã‚‰ã‚³ãƒ¼ãƒ«ã•ã‚Œã‚‹
+; inp8(HOOTPORT) = 0 â†’ PC98VX::Play  ãƒ­ãƒ¼ãƒ‰å‰
+; inp8(HOOTPORT) = 1 â†’ PC98VX::Play  ãƒ­ãƒ¼ãƒ‰å¾Œ
+; inp8(HOOTPORT) = 2 â†’ PC98VX::Stop
+; _code = inp8(HOOTPORT+2)ï½žinp8(HOOTPORT+5)
 
 hf_entry:	push	ds
 		push	es
@@ -61,7 +62,7 @@ hf_entry:	push	ds
 		iret
 
 .check:
-		mov	dx,HOOTPORT+3		; ƒI[ƒvƒjƒ“ƒO/ƒGƒ“ƒfƒBƒ“ƒOŽw’è‚Ì”»’è
+		mov	dx,HOOTPORT+3		; ã‚ªãƒ¼ãƒ—ãƒ‹ãƒ³ã‚°/ã‚¨ãƒ³ãƒ‡ã‚£ãƒ³ã‚°æŒ‡å®šã®åˆ¤å®š
 		in	al,dx
 		cmp	al,1
 		ret
@@ -82,7 +83,7 @@ hf_entry:	push	ds
 		jmp	short .ed
 
 .stop:
-		call	word OPNSEG:0x017c	; ƒtƒF[ƒhƒAƒEƒg
+		call	word OPNSEG:0x017c	; ãƒ•ã‚§ãƒ¼ãƒ‰ã‚¢ã‚¦ãƒˆ
 		jmp	short .ed
 
 		ends

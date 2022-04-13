@@ -1,5 +1,6 @@
 ; COMPAC GSP98 演奏
-; メインルーチン (for pc98dos)
+; (C) RuRuRu
+; 2017/09/03 1st Release
 ;
 ; HOOTPORT + 2~3 : ファイルハンドル番号
 ;

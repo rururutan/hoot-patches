@@ -1,5 +1,6 @@
 ; 気分はぱすてるたっち (C)Great 用
-; メインルーチン (for NASM)
+; (C) RuRuRu
+; 2018/01/30 1st Release
 
 %include 'hoot.inc'
 
