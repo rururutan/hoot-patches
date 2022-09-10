@@ -10,3 +10,7 @@
 * Port 07 サポート音源(0bit:YM2413 1bit:MSX-Audio 2bit:YMF271B)
 
 
+## ビルド
+
+[XASM](https://github.com/rururutan/xasm-w64)を使用しています。
+
