@@ -1,0 +1,344 @@
+	.186
+
+
+	HOOTPORT		equ		07e0h
+	HP_PLAY			equ		00h
+	HP_LOADPLAY		equ		01h
+	HP_STOP			equ		02h
+
+	HOOTFUNC		equ		07e8h
+	HF_DISABLE		equ		80h
+	HF_ENABLE		equ		81h
+	HF_NORMAL		equ		82h
+	HF_BURST		equ		83h
+
+; ---- pc98generic only
+
+	HOOTCTRL		equ		07d0h
+	HC_SETADDR		equ		10h
+	HC_GETADDR		equ		11h
+	HC_LOADBGM		equ		20h
+	HC_LOADBGM2		equ		21h
+
+
+	HOOT_VECTOR		equ		7fh
+	STACK_SIZE		equ		1024
+
+; popful.exe
+	DS_SEG			equ		02f7h
+	BASE_OFS		equ		0f000h
+	MUS_OFS			equ		047dh
+	INIT			equ		0214h
+	PLAY			equ		1053h
+	STOP			equ		103Ch
+	WAIT			equ		1071h
+	EXPAND			equ		2ab6h
+
+; opening.exe
+;	DS_SEG			equ		04d0h
+;	BASE_OFS		equ		0f000h
+;	MUS_OFS			equ		231bh
+;	INIT			equ		01b7h
+;	PLAY			equ		0a65h
+;	STOP			equ		0a4eh
+;	WAIT			equ		0a83h
+;	EXPAND			equ		3716h
+
+
+
+code cseg
+
+	rs 100h
+
+main:
+	cli
+
+	mov dx, HOOTFUNC
+	mov al, HF_DISABLE
+	out dx, al
+
+	mov ax, cs
+	mov ss, ax
+	mov sp, stack_end
+
+	mov bx, prg_end
+	add bx, 0fh
+	shr bx, 4
+	mov ah, 4ah
+	int 21h
+
+	call init
+	jc _main_loop
+
+	mov ax, cs
+	mov ds, ax
+	xor si, si
+	mov es, cs:[epb+14h]
+	mov di, BASE_OFS
+	mov cx, code_end
+	rep movsb
+
+	push es
+	push (_main_1 + BASE_OFS)
+	retf
+
+_main_1:
+	mov ax, cs:[BASE_OFS+exe_seg]
+	add ax, 10h
+	add ax, DS_SEG
+	mov ds, ax
+	mov bx, INIT
+	call bx
+
+	mov dx, cs
+	mov ds, dx
+	mov dx, (hootfunc + BASE_OFS)
+	mov ax, (2500h + HOOT_VECTOR)
+	int 21h
+
+	mov dx, HOOTFUNC
+	mov al, HF_ENABLE
+	out dx, al
+
+	sti
+_main_loop:
+	mov ax, 9801h
+	int 18h
+	jmp _main_loop
+
+
+hootfunc:
+	push es
+	push ds
+	pusha
+
+	sti
+
+	mov ax, cs:[BASE_OFS+exe_seg]
+	add ax, 10h
+	add ax, DS_SEG
+	mov ds, ax
+
+	mov dx, HOOTPORT
+	in al, dx
+
+	cmp al, HP_PLAY
+	jne _hootfunc_stop
+
+_hootfunc_play:
+	mov ax, 00ffh
+	mov bx, STOP
+	call bx
+
+	mov cx, -1
+
+	mov dx, (HOOTPORT+2)
+	in ax, dx
+	cmp ax, 6
+	jne _hootfunc_play_2
+
+_hootfunc_play_1:
+	mov dx, 45edh
+	xor cx, cx
+	xor bx, bx
+	mov ax, 4200h
+	int 21h
+	mov cx, 06f5h
+
+_hootfunc_play_2:
+	push ds
+	mov ds, cs:[BASE_OFS+buf_seg]
+	xor dx, dx
+	xor bx, bx
+	mov ah, 3fh
+	int 21h
+	mov cx, ax
+	mov ax, ds:[00h]
+	pop ds
+
+_hootfunc_play_3:
+	inc ax
+	cmp ax, cx
+	jne _hootfunc_play_copy
+
+_hootfunc_play_exp:
+	mov bx, cs:[BASE_OFS+buf_seg]
+	xor si, si
+
+	mov ax, ds
+	mov di, MUS_OFS
+
+	mov dx, di
+	shr dx, 4
+	add ax, dx
+	and di, 000fh
+
+	mov dx, EXPAND
+	call dx
+	jmp _hootfunc_play_end
+
+_hootfunc_play_copy:
+	push ds
+	mov ax, ds
+	mov es, ax
+	mov di, MUS_OFS
+	mov ds, cs:[BASE_OFS+buf_seg]
+	xor si, si
+	rep movsb
+	pop ds
+
+_hootfunc_play_end:
+	mov ax, MUS_OFS
+	mov bx, PLAY
+	call bx
+
+	jmp _hootfunc_end
+
+_hootfunc_stop:
+	cmp al, HP_STOP
+	jne _hootfunc_end
+
+	mov ax, 00ffh
+	mov bx, STOP
+	call bx
+
+_hootfunc_end:
+	popa
+	pop ds
+	pop es
+	iret
+
+
+	even
+
+buf_seg: dw 0
+exe_seg: dw 0
+
+code_end:
+
+
+
+; in
+;   ds:dx  exe_name
+;   es:bx  epb
+; out
+;   ax  psp seg
+exeload:
+	push es
+	push ds
+	pusha
+	mov bp, sp
+
+	mov bx, -1
+	mov ah, 48h
+	int 21h
+	mov ah, 48h
+	int 21h
+	jc _exeload_err
+
+	mov ss:[bp+0eh], ax	; ax
+
+	mov ax, 3d00h
+	int 21h
+	jc _exeload_err_1
+
+	mov ds, ss:[bp+0eh]	; ax
+	xor dx, dx
+	mov cx, 20h
+	mov bx, ax
+	mov ah, 3fh
+	int 21h
+
+	mov ah, 3eh
+	int 21h
+
+	mov ds, ss:[bp+10h]	; ds
+	mov dx, ss:[bp+0ah]	; dx
+	mov ax, ss:[bp+0eh]	; ax
+	mov bx, ss:[bp+08h]	; bx
+	add bx, 10h
+	add ax, 10h
+	mov es:[bx], ax
+	mov es:[bx+2], ax
+	mov es:[bx+4], ax
+	mov ax, 4b03h
+	int 21h
+	jc _exeload_err_1
+
+	mov bx, ss:[bp+08h]	; bx
+	mov dx, ss:[bp+0eh]	; ax
+	mov ds, dx
+	add dx, 10h
+
+	mov ax, ds:[10h]
+	mov es:[bx+0eh], ax
+	mov ax, ds:[0eh]
+	add es:[bx+10h], ax
+
+	mov ax, ds:[14h]
+	mov es:[bx+12h], ax
+	mov ax, ds:[16h]
+	add es:[bx+14h], ax
+
+	clc
+	jmp _exeload_end
+
+_exeload_err_1:
+	xchg ss:[bp+0eh], ax	; ax
+	mov es, ax
+	mov ah, 49h
+	int 21h
+_exeload_err:
+	stc
+
+_exeload_end:
+	mov sp, bp
+	popa
+	pop ds
+	pop es
+	ret
+
+
+init:
+	mov bx, 1000h
+	mov ah, 48h
+	int 21h
+	mov cs:[buf_seg], ax
+
+	mov ds, cs:[buf_seg]
+	xor dx, dx
+	mov cx, -1
+	mov bx, 5
+	mov ah, 3fh
+	int 21h
+	mov bx, ax
+	mov ds:[bx].b, 0
+
+	mov ds, cs:[buf_seg]
+	xor dx, dx
+	mov ax, cs
+	mov es, ax
+	mov bx, epb
+	call exeload
+	mov cs:[exe_seg], ax
+
+	ret
+
+
+	even
+
+epb: dw 0		; 00 env_seg
+     dw 81h, 0		; 02 arg_ptr
+     dw 5ch, 0		; 06 fcb1_ptr
+     dw 6ch, 0		; 0a fcb2_ptr
+     dw 0, 0, 0, 0	; 0e sp, ss, ip, cs
+
+
+	even
+
+	rs STACK_SIZE
+stack_end:
+
+prg_end:
+
+	end

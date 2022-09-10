@@ -1,0 +1,219 @@
+	.186
+
+
+	HOOTPORT		equ		07e0h
+	HP_PLAY			equ		00h
+	HP_LOADPLAY		equ		01h
+	HP_STOP			equ		02h
+
+	HOOTFUNC		equ		07e8h
+	HF_DISABLE		equ		80h
+	HF_ENABLE		equ		81h
+	HF_NORMAL		equ		82h
+	HF_BURST		equ		83h
+
+; ---- pc98generic only
+
+	HOOTCTRL		equ		07d0h
+	HC_SETADDR		equ		10h
+	HC_GETADDR		equ		11h
+	HC_LOADBGM		equ		20h
+	HC_LOADBGM2		equ		21h
+
+
+
+	HOOT_VECTOR		equ		7fh
+	STACK_SIZE		equ		1024
+
+
+
+code cseg
+
+	rs 01000h
+
+main:
+	cli
+
+	mov dx, HOOTFUNC
+	mov al, HF_DISABLE
+	out dx, al
+
+	mov ax, cs
+	mov ds, ax
+	mov ss, ax
+	xor sp, sp
+
+	mov ax, 1100h
+	mov es, ax
+	mov di, main
+	mov si, di
+	mov cx, prg_end
+	sub cx, si
+	rep movsb
+
+	call init
+
+
+	xor ax, ax
+	mov ds, ax
+	mov ax, hootfunc
+	mov ds:[HOOT_VECTOR * 4], ax
+	mov ds:[(HOOT_VECTOR * 4) + 2], cs
+
+	mov dx, HOOTFUNC
+	mov al, HF_ENABLE
+	out dx, al
+
+	sti
+_main_loop:
+	hlt
+	jmp _main_loop
+
+
+
+
+hootfunc:
+	sti
+	pusha
+	push ds
+	push es
+
+	mov ax, cs
+	mov ds, ax
+	mov es, ax
+
+	mov dx, HOOTPORT
+	in al, dx
+	cmp al, HP_PLAY
+	je _hootfunc_play
+	cmp al, HP_LOADPLAY
+	je _hootfunc_loadplay
+	cmp al, HP_STOP
+	je _hootfunc_stop
+	jmp _hootfunc_end
+
+_hootfunc_play:
+;	call stop
+
+	mov dx, (HOOTPORT+2)
+	in ax, dx
+	mov cs:[mus_num], ah
+	cmp ah, 1
+	je _hootfunc_play_1
+	cmp ah, 2
+	je _hootfunc_play_2
+	cmp ah, 3
+	je _hootfunc_play_3
+	jmp _hootfunc_end
+
+_hootfunc_play_1:
+	mov bx, 07fch
+	add bx, cs:[d]
+	mov ds:[bx], al
+	mov bx, 0951h
+	add bx, cs:[d]
+	call bx
+	jmp _hootfunc_end
+
+_hootfunc_play_2:
+	mov bx, 8b36h
+	call bx
+	jmp _hootfunc_end
+
+_hootfunc_play_3:
+	callf play_ed, 1100h
+	jmp _hootfunc_end
+
+_hootfunc_loadplay:
+	jmp _hootfunc_end
+
+_hootfunc_stop:
+	call stop
+
+_hootfunc_end:
+	pop es
+	pop ds
+	popa
+	iret
+
+
+stop:
+	push ax
+	push bx
+	xor ax, ax
+	xchg ax, cs:[mus_num]
+	or ax, ax
+	jz _stop_end
+	cmp ax, 1
+	je _stop_1
+	cmp ax, 2
+	je _stop_2
+	cmp ax, 3
+	je _stop_3
+	jmp _stop_end
+_stop_1:
+	mov bx, 08cdh
+	add bx, cs:[d]
+	call bx
+	mov bx, 093ch
+	add bx, cs:[d]
+	call bx
+	jmp _stop_end
+_stop_2:
+	mov bx, cs:[8acbh]
+	add bx, 8acdh
+;	mov bx, 0b34fh
+	call bx
+	jmp _stop_end
+_stop_3:
+	callf stop_ed, 1100h
+_stop_end:
+	pop bx
+	pop ax
+	ret
+
+
+play_ed:
+	push ds
+	mov bx, cs
+	mov ds, bx
+	mov ds:[7d1dh], al
+	mov bx, 7e86h
+	call bx
+	pop ds
+	retf
+
+stop_ed:
+	push ds
+	mov bx, cs
+	mov ds, bx
+	mov bx, 7e71h
+	call bx
+	mov bx, 7deeh
+	call bx
+	pop ds
+	retf
+
+
+init:
+	mov ax, cs:[106h]
+	add ax, 108h
+	push ax
+	call ax
+	mov es:[7095h], ah
+	pop ax
+	sub ax, 01b9h
+	mov cs:[d], ax
+	ret
+
+
+	even
+
+mus_num: dw 0
+d: dw 0
+
+
+
+prg_end:
+
+	end

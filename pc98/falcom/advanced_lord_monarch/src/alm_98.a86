@@ -1,0 +1,187 @@
+	.186
+
+
+	HOOTPORT		equ		07e0h
+	HP_PLAY			equ		00h
+	HP_LOADPLAY		equ		01h
+	HP_STOP			equ		02h
+
+	HOOTFUNC		equ		07e8h
+	HF_DISABLE		equ		80h
+	HF_ENABLE		equ		81h
+	HF_NORMAL		equ		82h
+	HF_BURST		equ		83h
+
+; ---- pc98generic only
+
+	HOOTCTRL		equ		07d0h
+	HC_SETADDR		equ		10h
+	HC_GETADDR		equ		11h
+	HC_LOADBGM		equ		20h
+	HC_LOADBGM2		equ		21h
+
+
+	HOOT_VECTOR		equ		7fh
+	STACK_SIZE		equ		1024
+
+
+	DRV_SEG			equ		1000h
+	DS_SEG			equ		0000h
+	BASE_OFS		equ		0f000h
+	MUS_OFS			equ		40e8h
+	TMP_SEG			equ		2000h
+	TMP_OFS			equ		6000h
+	INIT			equ		01e9h
+	PLAY			equ		0cabh
+	STOP			equ		0c8ch
+	WAIT			equ		0ccah
+	EXPAND			equ		0cd94h
+
+
+code cseg
+
+main:
+	cli
+
+	mov dx, HOOTFUNC
+	mov al, HF_DISABLE
+	out dx, al
+
+	mov ax, cs
+	mov ss, ax
+	mov sp, stack_end
+
+	mov ax, cs
+	mov ds, ax
+	xor si, si
+	mov ax, DRV_SEG
+	mov es, ax
+	mov di, BASE_OFS
+	mov cx, code_end
+	rep movsb
+
+	push es
+	push (_main_1 + BASE_OFS)
+	retf
+
+_main_1:
+	mov ax, DS_SEG
+	mov ds, ax
+	mov bx, INIT
+	call bx
+
+	mov dx, HOOTCTRL+2
+	xor ax, ax
+	out dx, al
+
+	add dx, 2
+	mov ax, TMP_OFS
+	out dx, ax
+
+	add dx, 2
+	mov ax, TMP_SEG
+	out dx, ax
+
+	mov dx, HOOTCTRL
+	mov al, HC_SETADDR
+	out dx, al
+
+	xor ax, ax
+	mov ds, ax
+	mov bx, (HOOT_VECTOR * 4)
+	mov ds:[bx].w, (hootfunc + BASE_OFS)
+	mov ds:[bx+2], cs
+
+
+	mov dx, HOOTFUNC
+	mov al, HF_ENABLE
+	out dx, al
+
+	sti
+_main_loop:
+	mov ax, 9801h
+	int 18h
+	jmp _main_loop
+
+
+hootfunc:
+	push es
+	push ds
+	pusha
+
+	sti
+
+	mov ax, DS_SEG
+	mov ds, ax
+
+	mov dx, HOOTPORT
+	in al, dx
+
+	cmp al, HP_PLAY
+	jne _hootfunc_loadplay
+
+_hootfunc_play:
+	mov ax, 00ffh
+	mov bx, STOP
+	call bx
+	jmp _hootfunc_end
+
+
+_hootfunc_loadplay:
+	cmp al, HP_LOADPLAY
+	jne _hootfunc_stop
+
+	mov ax, TMP_SEG
+	mov ds, ax
+	mov si, TMP_OFS
+	mov ax, ds:[si+03h]
+	test ax, 0fc1fh
+	jnz _hootfunc_loadplay_4
+	cmp ax, ds:[si]
+	jae _hootfunc_loadplay_4
+
+	mov ax, DS_SEG
+	mov di, MUS_OFS
+	mov bx, EXPAND
+	call bx
+	jmp _hootfunc_loadplay_9
+
+_hootfunc_loadplay_4:
+	mov ax, DS_SEG
+	mov es, ax
+	mov di, MUS_OFS
+	mov cx, 2000h
+	rep movsb
+
+_hootfunc_loadplay_9:
+	mov ax, DS_SEG
+	mov ds, ax
+	mov ax, MUS_OFS
+	mov bx, PLAY
+	call bx
+	jmp _hootfunc_end
+
+_hootfunc_stop:
+	cmp al, HP_STOP
+	jne _hootfunc_end
+
+	mov ax, 00ffh
+	mov bx, STOP
+	call bx
+
+_hootfunc_end:
+	popa
+	pop ds
+	pop es
+	iret
+
+code_end:
+
+	even
+
+	rs STACK_SIZE
+stack_end:
+
+prg_end:
+
+	end

@@ -1,0 +1,279 @@
+	.186
+
+
+	HOOTPORT		equ		07e0h
+	HP_PLAY			equ		00h
+	HP_LOADPLAY		equ		01h
+	HP_STOP			equ		02h
+
+	HOOTFUNC		equ		07e8h
+	HF_DISABLE		equ		80h
+	HF_ENABLE		equ		81h
+	HF_NORMAL		equ		82h
+	HF_BURST		equ		83h
+
+; ---- pc98generic only
+
+	HOOTCTRL		equ		07d0h
+	HC_SETADDR		equ		10h
+	HC_GETADDR		equ		11h
+	HC_LOADBGM		equ		20h
+	HC_LOADBGM2		equ		21h
+
+
+
+	HOOT_VECTOR		equ		7fh
+	STACK_SIZE		equ		1024
+
+
+
+code cseg
+
+	rs 0e000h
+
+main:
+	cli
+
+	mov dx, HOOTFUNC
+	mov al, HF_DISABLE
+	out dx, al
+
+	mov ax, 0800h
+	mov ss, ax
+	mov sp, 0
+
+
+	xor ax, ax
+	mov ds, ax
+	mov ax, int1b
+	mov ds:[7eh * 4], ax
+	mov ds:[(7eh * 4) + 2], cs
+
+
+	xor ax, ax
+	mov ds, ax
+	mov ax, hootfunc
+	mov ds:[HOOT_VECTOR * 4], ax
+	mov ds:[(HOOT_VECTOR * 4) + 2], cs
+
+	mov dx, HOOTFUNC
+	mov al, HF_ENABLE
+	out dx, al
+
+	sti
+_main_loop:
+	hlt
+	jmp _main_loop
+
+
+
+
+hootfunc:
+	pusha
+	push ds
+	push es
+
+	mov ax, cs
+	mov ds, ax
+
+	mov dx, HOOTPORT
+	in al, dx
+	cmp al, HP_PLAY
+	je _hootfunc_play
+	cmp al, HP_LOADPLAY
+	je _hootfunc_loadplay
+	cmp al, HP_STOP
+	je _hootfunc_stop
+	jmp _hootfunc_end
+
+_hootfunc_play:
+	call stop
+	jmp _hootfunc_end
+
+_hootfunc_loadplay:
+	mov dx, (HOOTPORT+2)
+	in ax, dx
+	mov cs:[mus_num], ax
+	cmp ax, 1
+	je _hootfunc_loadplay_1
+	cmp ax, 2
+	je _hootfunc_loadplay_2
+	jmp _hootfunc_end
+
+_hootfunc_loadplay_1:
+	push ds
+	xor ax, ax
+	mov ds, ax
+	mov ds:[14h * 4].w, 008ah
+	mov ds:[15h * 4].w, 008ah
+	mov ds:[(14h * 4) + 2].w, 0fd80h
+	mov ds:[(15h * 4) + 2].w, 0fd80h
+	pop ds
+	call uncrypt
+	mov al, 08h
+	mov ds:[274fh], al
+	mov bx, 0710h
+	call bx
+	jmp _hootfunc_end
+
+_hootfunc_loadplay_2:
+	mov dx, (HOOTPORT+4)
+	in ax, dx
+	mov cs:[3df1h], al
+	mov bx, 3b8ah
+	call bx
+	mov bx, 3b45h
+	call bx
+	jmp _hootfunc_end
+
+_hootfunc_stop:
+	call stop
+
+_hootfunc_end:
+	pop es
+	pop ds
+	popa
+	iret
+
+
+stop:
+	push ax
+	push bx
+	xor ax, ax
+	xchg ax, cs:[mus_num]
+	or ax, ax
+	jz _stop_end
+	cmp ax, 1
+	je _stop_1
+	cmp ax, 2
+	je _stop_2
+	jmp _stop_end
+_stop_1:
+	mov bx, 098ch
+	call bx
+	jmp _stop_end
+_stop_2:
+	mov bx, 3ae5h
+	call bx
+_stop_end:
+	pop bx
+	pop ax
+	ret
+
+
+uncrypt:
+	push es
+	push ds
+	pusha
+	mov cs:[ss_backup], ss
+	mov cs:[sp_backup], sp
+
+	mov ax, 1600h
+	mov es, ax
+	xor di, di
+	mov cx, 1000h
+	xor ax, ax
+	rep stosb
+
+	mov ax, 1300h
+	mov ds, ax
+	mov es, ax
+	mov si, 0000h
+	mov di, 1000h
+	mov cx, 1000h
+	rep movsb
+	mov ds:[15f0h].b, 0eah
+	mov ds:[15f1h].w, _uncrypt_ret_1300
+	mov ds:[15f3h], cs
+	jmpf 1000h, 1300h
+_uncrypt_ret_1300:
+
+	mov ax, 1200h
+	mov ds, ax
+	mov es, ax
+	mov si, 0000h
+	mov di, 2000h
+	mov cx, 1000h
+	rep movsb
+	mov ds:[25f5h].b, 0eah
+	mov ds:[25f6h].w, _uncrypt_ret_1200
+	mov ds:[25f8h], cs
+	jmpf 2000h, 1200h
+_uncrypt_ret_1200:
+
+	mov ax, 1000h
+	mov ds, ax
+	mov es, ax
+	mov si, 0000h
+	mov di, 4000h
+	mov cx, 2000h
+	rep movsb
+	mov ds:[41f4h].b, 7eh
+	mov ds:[48ach].w, 9090h
+	mov ds:[4bb2h].b, 0eah
+	mov ds:[4bb3h].w, _uncrypt_ret_1000
+	mov ds:[4bb5h], cs
+	jmpf 4000h, 1000h
+_uncrypt_ret_1000:
+
+	mov sp, cs:[sp_backup]
+	mov ss, cs:[ss_backup]
+	popa
+	pop ds
+	pop es
+	ret
+
+
+int1b:
+	push es
+	push ds
+	pusha
+
+	and ah, 0fh
+	cmp ah, 06h
+	jne _int1b_end
+	cmp cl, 19h
+	je _int1b_2
+	cmp cl, 00h
+	je _int1b_4
+	jmp _int1b_end
+
+_int1b_2:
+	mov ax, 1000h
+	mov ds, ax
+	mov si, 3000h
+	mov di, bp
+	mov cx, bx
+	rep movsb
+	jmp _int1b_end
+
+_int1b_4:
+	mov ax, 1fc0h
+	mov ds, ax
+	xor si, si
+	mov di, bp
+	mov cx, bx
+	rep movsb
+
+_int1b_end:
+	popa
+	pop ds
+	pop es
+	clc
+	iret
+
+
+
+	even
+
+mus_num: dw 0
+sp_backup: dw 0
+ss_backup: dw 0
+
+
+	even
+
+	rs STACK_SIZE
+stack_end:
+
+	end

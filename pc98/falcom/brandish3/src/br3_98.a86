@@ -1,0 +1,269 @@
+	.186
+
+
+	HOOTPORT		equ		07e0h
+	HP_PLAY			equ		00h
+	HP_LOADPLAY		equ		01h
+	HP_STOP			equ		02h
+
+	HOOTFUNC		equ		07e8h
+	HF_DISABLE		equ		80h
+	HF_ENABLE		equ		81h
+	HF_NORMAL		equ		82h
+	HF_BURST		equ		83h
+
+; ---- pc98generic only
+
+	HOOTCTRL		equ		07d0h
+	HC_SETADDR		equ		10h
+	HC_GETADDR		equ		11h
+	HC_LOADBGM		equ		20h
+	HC_LOADBGM2		equ		21h
+
+
+
+	HOOT_VECTOR		equ		7fh
+	STACK_SIZE		equ		1024
+
+	BASE_OFS		equ		0e000h
+	TMP_SEG			equ		2280h
+	EXPAND			equ		0f45h
+
+
+code cseg
+
+	rs 100h
+
+main:
+	cli
+
+	mov dx, HOOTFUNC
+	mov al, HF_DISABLE
+	out dx, al
+
+	mov ax, cs
+	add ax, 1280h
+	mov ss, ax
+	mov sp, 0
+
+
+	mov ax, cs
+	mov ds, ax
+	mov es, ax
+	xor si, si
+	mov di, BASE_OFS
+	mov cx, prg_end
+	rep movsb
+
+	mov bx, (BASE_OFS + _main_0)
+	jmp bx
+_main_0:
+
+	call loadbios
+	jc _main_loop
+
+	mov ax, cs
+	mov ds, ax
+	mov dx, 1880h
+	mov bx, 7
+	call load
+	jc _main_loop
+
+	mov ax, cs
+	mov cs:[00h], ax
+	add ax, 280h
+	mov cs:[02h], ax
+	add ax, 1000h
+	mov cs:[04h], ax
+
+	mov ds, cs:[04h]
+	mov es, cs:[04h]
+	call cs:[1882h]
+
+
+	mov dx, cs
+	mov ds, dx
+	mov dx, (BASE_OFS + hootfunc)
+	mov ax, (2500h + HOOT_VECTOR)
+	int 21h
+
+	mov dx, HOOTFUNC
+	mov al, HF_ENABLE
+	out dx, al
+
+	mov dx, 0a460h
+	mov al, 01h
+	out dx, al
+
+	sti
+_main_loop:
+	mov ax, 9801h
+	int 18h
+	jmp _main_loop
+
+
+
+
+hootfunc:
+	push es
+	push ds
+	pusha
+
+	mov ds, cs:[04h]
+	mov es, cs:[04h]
+
+	mov dx, HOOTPORT
+	in al, dx
+	cmp al, HP_PLAY
+	je _hootfunc_play
+	cmp al, HP_STOP
+	je _hootfunc_stop
+	jmp _hootfunc_end
+
+_hootfunc_play:
+	call cs:[1884h]
+	xor dx, dx
+	xor bx, bx
+	call load
+	call cs:[1886h]
+	jmp _hootfunc_end
+
+_hootfunc_stop:
+	call cs:[1884h]
+
+_hootfunc_end:
+	popa
+	pop ds
+	pop es
+	iret
+
+
+
+; ds:dx
+; bx
+;
+load:
+	push es
+	push ds
+	pusha
+
+	mov ax, ds
+	mov es, ax
+	mov di, dx
+
+	mov ax, cs
+	add ax, TMP_SEG
+	mov ds, ax
+	xor dx, dx
+	mov cx, -1
+	mov ah, 3fh
+	int 21h
+	jc _load_err
+	mov cx, ax
+
+	xor si, si
+	mov ax, ds:[si]
+	inc ax
+	cmp ax, cx
+	jne _load_copy
+
+_load_expand:
+	mov bx, ds
+	mov ax, es
+	mov cx, EXPAND
+	call cx
+	clc
+	jmp _load_end
+
+_load_copy:
+	rep movsb
+	clc
+	jmp _load_end
+
+_load_err:
+	stc
+
+_load_end:
+	popa
+	pop ds
+	pop es
+	ret
+
+
+
+loadbios:
+	push es
+	push ds
+	pusha
+
+	mov ax, cs
+	add ax, TMP_SEG
+	mov ds, ax
+
+	xor dx, dx
+	mov cx, -1
+	mov bx, 5
+	mov ah, 3fh
+	int 21h
+	jc _loadbios_err
+
+	mov si, 0373h
+	mov ax, cs
+	mov es, ax
+	mov di, 140ch
+	mov cx, 37h
+	rep movsb
+
+	xor dx, dx
+	mov cx, -1
+	mov bx, 6
+	mov ah, 3fh
+	int 21h
+	jc _loadbios_err
+
+	xor si, si
+	mov bx, cs
+
+	mov es, bx
+	xor di, di
+	lodsw
+	mov cx, ax
+	rep movsb
+
+	add bx, 280h
+	mov es, bx
+	xor di, di
+	lodsw
+	mov cx, ax
+	rep movsb
+
+	add bx, 1000h
+	mov es, bx
+	mov di, 2400h
+	lodsw
+	mov cx, ax
+	rep movsb
+
+	clc
+	jmp _loadbios_end
+
+_loadbios_err:
+	stc
+
+_loadbios_end:
+	popa
+	pop ds
+	pop es
+	ret
+
+
+
+	even
+
+
+	rs STACK_SIZE
+stack_end:
+
+prg_end:
+
+	end

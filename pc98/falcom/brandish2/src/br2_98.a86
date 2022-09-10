@@ -1,0 +1,229 @@
+	.186
+
+
+	HOOTPORT		equ		07e0h
+	HP_PLAY			equ		00h
+	HP_LOADPLAY		equ		01h
+	HP_STOP			equ		02h
+
+	HOOTFUNC		equ		07e8h
+	HF_DISABLE		equ		80h
+	HF_ENABLE		equ		81h
+	HF_NORMAL		equ		82h
+	HF_BURST		equ		83h
+
+; ---- pc98generic only
+
+	HOOTCTRL		equ		07d0h
+	HC_SETADDR		equ		10h
+	HC_GETADDR		equ		11h
+	HC_LOADBGM		equ		20h
+	HC_LOADBGM2		equ		21h
+
+
+
+	HOOT_VECTOR		equ		7fh
+	STACK_SIZE		equ		1024
+
+
+	BASE_SEG		equ		1000h
+	BASE_OFS		equ		0f000h
+	TMP_SEG			equ		2000h
+	EXPAND			equ		021ah
+
+
+
+code cseg
+
+	rs 100h
+
+main:
+	cli
+
+	mov dx, HOOTFUNC
+	mov al, HF_DISABLE
+	out dx, al
+
+
+	mov ax, cs
+	mov ds, ax
+	add ax, BASE_SEG
+	mov es, ax
+	xor si, si
+	mov di, BASE_OFS
+	mov cx, prg_end
+	rep movsb
+	push es
+	push (BASE_OFS + _main_0)
+	retf
+_main_0:
+
+	mov ax, cs
+	mov ds, ax
+	mov ss, ax
+	mov sp, (BASE_OFS + stack_end)
+
+	call loadbios
+	jc _main_loop
+
+	mov ax, cs
+	mov es, ax
+	xor di, di
+	xor ax, ax
+	mov cx, 40h
+	rep stosb
+
+	mov ax, cs
+	mov cs:[00h], ax
+	sub ax, BASE_SEG
+	mov cs:[02h], ax
+
+	mov ds, cs:[00h]
+	mov dx, 40h
+	mov cx, -1
+	mov bx, 7
+	mov ah, 3fh
+	int 21h
+	jc _main_loop
+
+	mov ds, cs:[02h]
+	mov es, cs:[02h]
+	call cs:[42h]
+
+
+	mov dx, cs
+	mov ds, dx
+	mov dx, (BASE_OFS + hootfunc)
+	mov ax, (2500h + HOOT_VECTOR)
+	int 21h
+
+	mov dx, HOOTFUNC
+	mov al, HF_ENABLE
+	out dx, al
+
+	mov dx, 0a460h
+	mov al, 01h
+	out dx, al
+
+	sti
+_main_loop:
+	mov ax, 9801h
+	int 18h
+	jmp _main_loop
+
+
+
+
+hootfunc:
+	push es
+	push ds
+	pusha
+
+	mov ds, cs:[02h]
+	mov es, cs:[02h]
+
+	mov dx, HOOTPORT
+	in al, dx
+	cmp al, HP_PLAY
+	je _hootfunc_play
+	cmp al, HP_STOP
+	je _hootfunc_stop
+	jmp _hootfunc_end
+
+_hootfunc_play:
+	call cs:[44h]
+
+	mov dx, cs:[BASE_OFS + mus_ofs]
+	mov cx, -1
+	xor bx, bx
+	mov ah, 3fh
+	int 21h
+
+	call cs:[46h]
+
+	jmp _hootfunc_end
+
+_hootfunc_stop:
+	call cs:[44h]
+
+_hootfunc_end:
+	popa
+	pop ds
+	pop es
+	iret
+
+
+loadbios:
+	push es
+	push ds
+	pusha
+
+	mov ax, cs
+	add ax, (TMP_SEG - BASE_SEG)
+	mov ds, ax
+
+	xor dx, dx
+	mov cx, -1
+	mov bx, 5
+	mov ah, 3fh
+	int 21h
+	jc _loadbios_err
+	mov cx, ax
+
+	mov si, 200h
+	mov ax, cs
+	mov es, ax
+	xor di, di
+	sub cx, 200h
+	rep movsb
+
+	xor dx, dx
+	mov cx, -1
+	mov bx, 6
+	mov ah, 3fh
+	int 21h
+	jc _loadbios_err
+
+	cmp ax, 15147
+	jne _loadbios_1
+	mov ax, 7753h
+	mov cs:[BASE_OFS + mus_ofs], ax
+
+_loadbios_1:
+	mov bx, ds
+	xor si, si
+	mov ax, cs
+	mov di, 2400h
+	mov cx, EXPAND
+	call cx
+	mov ax, cs
+	sub ax, BASE_SEG
+	mov di, 2400h
+	mov cx, EXPAND
+	call cx
+
+	clc
+	jmp _loadbios_end
+
+_loadbios_err:
+	stc
+
+_loadbios_end:
+	popa
+	pop ds
+	pop es
+	ret
+
+
+	even
+
+mus_ofs: dw 0be6eh
+
+	even
+
+	rs STACK_SIZE
+stack_end:
+
+prg_end:
+
+	end
