@@ -34,9 +34,11 @@ dump/
 data/
 *.lst
 *.*~
+*.bak
 *.d88
 *.d77
 *.dsk
 *.rom
 *.bin
+*.zip
 patch
