@@ -2,6 +2,7 @@
 ;
 ; @autor RuRuRu
 ; @date 2010/12/22 1st Release
+; @date 2022/09/23 Fix S.E
 ;
 
 	cseg
@@ -50,11 +51,14 @@ play_stop:
 	ret
 
 play_se:
+	xor	a
+	ld	(ply_flag),a
 	in	a,(03h)		; Code No.
-	call	0040A5h
+	ld	(0EB74h),a
 	jr	play_end
 
 stop:
+	call	09D03h
 	call	play_stop
 	jr	play_end
 
@@ -80,11 +84,11 @@ irq:
 
 	xor	a
 	ld	(irq_cnt), a
-	call	09D74H		; Sound IRQ
+	call	09D74H		; Sound IRQ(本当はIRQじゃない)
 irq_end:
 	ret
 
 ply_flag:
-	db	00h
+	db	01h
 irq_cnt:
 	db	00h
