@@ -2,6 +2,7 @@
 ;
 ; @autor RuRuRu
 ; @date 2010/10/17 1st Release
+; @date 2022/09/24 Support S.E.
 ;
 
 	cseg
@@ -24,6 +25,10 @@ loop:
 	cp	01h
 	jr	nz,stop
 
+	in	a, (04h)
+	cp	01h
+	jr	z, play_se
+
 	call	play_stop
 
 	in	a,(03h)		; Code No.
@@ -37,6 +42,11 @@ play_end:
 play_stop:
 	call	05652h
 	ret
+
+play_se:
+	in	a,(03h)		; Code No.
+	ld	(0C355h),a
+	jr	play_end
 
 stop:
 	call	play_stop
