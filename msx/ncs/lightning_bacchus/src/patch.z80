@@ -1,0 +1,103 @@
+; Lightning Bacchus (c)NCS
+;
+; @autor RuRuRu
+; @date 2023/03/17 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
+; play
+	in	a,(03h)		; Code No.
+	di
+	call	0A400h
+	ei
+	jr	play_end
+
+play_se:
+	in	a,(03h)		; Code No.
+	call	0A403h
+	jr	play_end
+
+stop:
+	xor	a
+	call	0A400h
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C3h
+	ld	(001Ch), a
+	ld	(0030h), a
+	ld	hl, calslt
+	ld	(0001Dh), hl
+	ld	hl, callf
+	ld	(0031h), hl
+
+	call	0A406h
+
+	ret
+
+calslt:
+	jp	(ix)
+
+callf:
+	pop	ix
+
+	push	af
+	push	bc
+
+	ld	a, (ix)
+	ld	(page), a
+
+	inc	ix
+
+	ld	a, (ix)
+	ld	c, a
+	inc	ix
+	ld	a, (ix)
+	ld	b, a
+	ld	(addr), bc
+
+	inc	ix
+
+	pop	bc
+	pop	af
+
+	push	ix
+
+	push	hl
+	ld	hl, (addr)
+	push	hl
+	pop	ix
+	pop	hl
+	jp	(ix)
+
+page:
+	db	00h
+addr:
+	dw	0000h
