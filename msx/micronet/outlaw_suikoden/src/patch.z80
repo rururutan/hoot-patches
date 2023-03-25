@@ -1,0 +1,104 @@
+; アウトロー水滸伝 (c)Micronet
+;
+; @autor RuRuRu
+; @date 2021/07/23 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,play_stop
+
+	call	0B2CBh
+
+	in	a,(03h)
+	ld	e,a
+	add	a,a
+	add	a,e
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	e,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,e
+	out	(03h), a
+
+	call	0B265h
+	jp	play_end
+
+play_stop:
+	call	0B2CBh
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+init:
+	in	a,(07h)		; デバイス取得(01:opll)
+	and	01h
+	ld	(0C31Dh),a
+	ret
+
+mustbl:
+	db	00h
+	dw	04D9Dh	; STMAIN
+	db	01h
+	dw	06574h	; MAIN0
+	db	01h
+	dw	072F5h	; MAIN0
+	db	02h
+	dw	0717Ch	; MAIN1
+	db	02h
+	dw	0782Ch	; MAIN1
+	db	02h
+	dw	07D4Ah	; MAIN1
+	db	02h
+	dw	080D3h	; MAIN1
+	db	02h
+	dw	083B0h	; MAIN1
+	db	03h
+	dw	076DFh	; MAIN2
+	db	03h
+	dw	07D8Fh	; MAIN2
+	db	03h
+	dw	0828Ch	; MAIN2
+	db	03h
+	dw	08C9Dh	; MAIN2
+	db	04h
+	dw	05F3Eh	; MAIN3
+	db	04h
+	dw	065EEh	; MAIN3
+	db	04h
+	dw	07333h	; MAIN3
+	db	05h
+	dw	08984h	; MAIN4
+	db	05h
+	dw	07BD9h	; MAIN4
+	db	05h
+	dw	08289h	; MAIN4
+	db	05h
+	dw	08EA2h	; MAIN4
+	db	06h
+	dw	06A98h	; MAIN5
+	db	06h
+	dw	09878h	; MAIN5
