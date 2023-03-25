@@ -1,0 +1,50 @@
+; Trilogy 九鬼妖華真伝 (c)Hard
+;
+; @autor RuRuRu
+; @date 2023/03/17 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	0C000h
+
+	di
+	in	a,(03h)
+	out	(03h),a		; 曲データを読み込む
+	ei
+
+	call	0C003h
+	jr	loop
+
+stop:
+	call	0C000h
+
+	xor	a		; 停止処理
+	out	(02h),a
+	jr	loop
+
+init:
+	call	0C000h
+	ret
+
