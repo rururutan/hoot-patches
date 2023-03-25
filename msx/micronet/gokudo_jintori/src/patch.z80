@@ -2,12 +2,13 @@
 ;
 ; @autor RuRuRu
 ; @date 2011/04/15 1st Release
+; @date 2023/03/16 Add SDAT.COM support
 ;
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
+stack:	equ	0f380h		; Stack
 
 main:
 	di
@@ -17,7 +18,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; Key wait
 	or	a
 	jr	z,loop
 
@@ -35,6 +36,8 @@ loop:
 	out	(03h),a
 	cp	01h
 	jr	z,endmsx
+	cp	02h
+	jr	z,sdat
 
 ;title
 	ld	hl, 7000h
@@ -49,6 +52,28 @@ loop:
 endmsx:
 	ld	de,mustbl2
 	ld	ix,05296h		; endmsx.com:req
+	jr	playreq
+
+sdat:
+	ld	a, 01h
+	out	(03h),a
+	pop	af
+	ld	de,mustbl3
+	add	a,a		; x2
+	ld	l,a
+	ld	h,000H
+	add	hl,de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	push	de
+	pop	hl
+	ld	de,0BD12h
+	ld	bc,0310h
+	ldir
+	ld	hl ,0BD12h
+	call	05296h		; endmsx.com:req
+	jr	play_end
 
 playreq:
 	pop	af
@@ -67,8 +92,8 @@ playreq:
 
 play_stop:
 	ld	a,(drvno)
-	cp	01h
-	jr	z,endmsx_stop
+	cp	00h
+	jr	nz,endmsx_stop
 
 	call	05B75h
 	ret
@@ -83,7 +108,7 @@ stop:
 play_end:
 	xor	a		; hoot status変更
 	out	(02h),a
-	jr	loop
+	jp	loop
 
 init:
 	in	a, (07h)
@@ -103,6 +128,11 @@ mustbl2:
 	dw	059BEh
 	dw	06245h
 	dw	07147h
+
+mustbl3:
+	dw	01000h
+	dw	01252h
+	dw	014F8h
 
 drvno:
 	db	00h
