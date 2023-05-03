@@ -1,0 +1,105 @@
+; Living Daylights
+;
+; @author RuRuRu
+; @date 2019/08/07 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0F380h		; Stack
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(04h)
+	cp	01h
+	jr	nz, play_se
+
+	in	a,(03h)
+	call	042E8h
+	jr	play_end
+
+play_se:
+	in	a,(03h)
+	call	042ECh
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Chagne hoot status
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	xor	a
+	ld	(02DDBH),a
+	ld	(02DDCH),a
+	ld	(02DDDH),a
+	;ld	a, 0FFh
+	;call	042E8h
+	call	090h
+	ret
+
+init:
+	ld	a, 0C3h
+	ld	(00038h), a
+	ld	hl, irq
+	ld	(00039h), hl
+
+	; load driver
+	ld	hl,09000H
+	ld	de,02D00H
+	ld	bc,05300H
+	ldir
+
+	ret
+
+irq:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	di
+	in	a,(099h)
+	or	a
+	jp	p,int_end
+	ei
+	call	042F0h
+	di
+int_end:
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret
