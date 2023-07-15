@@ -1,12 +1,14 @@
-; SUPER RAMBO (c)PackIn 用
-; メインルーチン
+; Super Rambo Special (c)Pack-in-Video
+;
+; @autor RuRuRu
+; @date 2011/11/16 1st Release
+; @date 2023/06/03 Support Ending &SE
+;
 
 	cseg
 	org	0400h
 
-stack:	equ	0f800h		; スタックエリア
-
-; メインループ
+stack:	equ	0f800h
 
 main:
 	di
@@ -16,7 +18,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; Key wait
 	or	a
 	jr	z,loop
 
@@ -26,18 +28,48 @@ loop:
 ;	call	04119h		; Stop
 
 ; play
+	in	a,(04h)
+	cp	01h
+	jr	z,play_se
+
 	call	07C89H		; Sound Stop?
 
 	in	a,(03h)		; Code No.
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+
+	ld	a,(hl)		; bank
+	ld	(07000H),a	; Chang bank
+	inc	hl
+	ld	a,(hl)		; code
 	ld	(0C139H),a	; Sound Code
 
-	di
 	call	07C34h		; Req
 	ld	a,0C3H
 	ld	(0FD9FH),a
-	ei
 
 	jp	play_end
+
+play_se:
+	in	a,(03h)		; Code No.
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,setbl
+	add	hl,de
+
+	ld	e,(hl)		; bank
+	inc	hl
+	ld	d,(hl)		; code
+	ld	hl, play_end
+	push	hl
+	push	de
+	pop	hl
+	jp	(hl)
+
 
 stop:
 	di
@@ -48,7 +80,7 @@ stop:
 
 play_end:
 	xor	a
-	out	(02h),a		; hoot status変更
+	out	(02h),a		; hoot status螟画峩
 	jr	loop
 
 init:
@@ -66,7 +98,32 @@ init:
 
 	ld	a,001h
 	ld	(0C27BH),a	; Sound Enable
-
-	ld	a,006H		; Title Bank
-	ld	(07000H),a	; Bank
 	ret
+
+mustbl:
+	;	bank	code
+	db	07h	,00h
+	db	05h	,01h
+	db	05h	,02h
+	db	06h	,03h
+	db	05h	,03h
+	db	05h	,04h
+	db	05h	,05h
+	db	05h	,06h
+	db	07h	,07h
+
+setbl:
+	dw	06EE7h		; 00
+	dw	06EF2h
+	dw	06EFDh
+	dw	06F11h
+	dw	06F16h
+	dw	06F1Bh
+	dw	06F20h
+	dw	06F26h
+	dw	06F2Ah
+	dw	06F2Fh
+	dw	06F3Ah
+	dw	06F42h
+	dw	06F4Dh
+	dw	06F6Ah		; 0D
