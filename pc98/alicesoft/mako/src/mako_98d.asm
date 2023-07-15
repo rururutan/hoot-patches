@@ -1,5 +1,7 @@
 ; MAKO & DRI player for pc98dos driver
 ; nasm version
+; 2007/08/27 1st Release
+; 2023/07/13 Clean up & PCM support
 
 %include 'hoot.inc'
 int_hoot	equ	0x07f
@@ -75,16 +77,16 @@ vect_hoot:
 		popa
 		iret
 
+.stop:
+.fadeout:
+		mov	ax,0x0100		; [mako] stop
+		int	int_mako
+		call	pcm_stop
+		jmp	short .ed
+
 .play:
 		mov	ax,0x0100		; [mako] play stop
 		int	int_mako
-
-		; fix file offset
-		mov	ah,0x42
-		xor	cx,cx
-		xor	dx,dx
-		mov	al,0x00
-		int	21h
 
 		; get data index
 		mov	dx,HOOTPORT+2
@@ -104,26 +106,36 @@ vect_hoot:
 		mov	bx,[cs:loadseg]		; buffer ptr(DS:SI)
 		mov	ds,bx
 		xor	si,si
+
+		mov	dx,HOOTPORT+3
+		in	al,dx
+		cmp	al,1
+		jz	.pcm_play
+
 		mov	ah,0x00			; [mako] play from buffer
 		int	int_mako
 
-		jmp	short .ed
+		jmp	.ed
 
-.stop:
-.fadeout:
-		mov	ax,0x0100		; [mako] stop
+.pcm_play:
+		mov	ah,0x40			; [makop] pcm start
 		int	int_mako
-		jmp	short .ed
+		jmp	.ed
+
+pcm_stop:
+		mov	ah,0x41			; [makop] pcm stop
+		int	int_mako
+		ret
 
 musname:
 		db	'A:AMUS.DAT',00,00,00,00,00,'$'
 
 patchmsg:
-		db	0x0D,0x0A,'MAKO & DRI player for hoot driver ver 1.0 by RuRuRu',0x0D,0x0A,'$'
+		db	0x0D,0x0A,'MAKO & DRI player for hoot driver ver 2.0 by RuRuRu',0x0D,0x0A,'$'
 
 loadseg:
 		dw	0
 
 prgend:
-		ends
+;		.ends
 
