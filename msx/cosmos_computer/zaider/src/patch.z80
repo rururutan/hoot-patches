@@ -1,13 +1,14 @@
-; 超戦士ZAIDER (c)Cosmos Computer 用
-; (C) RuRuRu
-; 2011/02/04 1st Release
+; 超戦士Zaider Battle of Peguss (c)Cosmos Computer
+;
+; @autor RuRuRu
+; @date 2011/02/04 1st Release
+; @date 2023/06/02 Support SE
+;
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
-
-; メインループ
+stack:	equ	0f380h
 
 main:
 	di
@@ -17,16 +18,21 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; Key wait
 	or	a
 	jr	z,loop
 
 	cp	01h
 	jr	nz,stop
 
+	in	a, (04h)	; Code No.
+	cp	01
+	jr	z,play_se
+
 ;	call	play_stop
 
 	in	a, (03h)	; Code No.
+	push	af
 	add	a,a
 	ld	hl, mustbl
 	ld	e, a
@@ -38,8 +44,12 @@ loop:
 	push	de
 	pop	hl
 	call	07E0CH
+	pop	af
 
-	ld	a, 007h		; なぜか2週目で3chが変な発音するのでマスク
+	cp	00
+	jr	z, play_end
+
+	ld	a, 007h		; タイトル曲で2ループ後に3chが変な発音するのでマスク
 	ld	e, 0BCh
 	call	093h
 	jr	play_end
@@ -59,7 +69,7 @@ stop:
 	call	play_stop
 
 play_end:
-	xor	a		; hoot status変更
+	xor	a		; Change hoot status
 	out	(02h),a
 	jr	loop
 
