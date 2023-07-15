@@ -11,3 +11,6 @@
 | FD5Bh | R   | リクエストコード(16~23bit) |
 | FD5Ch | R   | リクエストコード(24~31bit) |
 
+## ビルド
+
+[as68]()と[s19tobin](https://github.com/rururutan/s19tobin)を使用しています。
