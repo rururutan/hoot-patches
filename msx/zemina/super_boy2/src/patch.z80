@@ -1,0 +1,59 @@
+; Super Boy II (c)Zenima
+;
+; @autor RuRuRu
+; @date 2023/07/28 1st Release
+;
+	cseg
+	org	0400h
+
+stack:	equ	0F300h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz, stop
+
+	in	a, (04h)
+	cp	01h
+	jr	z, se_play
+
+	in	a, (03h)
+	call	073BDh
+	xor	a
+	call	0A809h
+
+	jr	play_end
+
+se_play:
+	in	a, (03h)
+	call	0A809h
+	jr	play_end
+
+stop:
+	call	073C9h
+
+play_end:
+	xor	a		; Chagen hoot's status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, 05D40h
+	ld	(0FDA0h), hl
+
+	call	073C9h
+
+	ret
+
