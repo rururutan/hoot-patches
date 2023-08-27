@@ -1,0 +1,98 @@
+; Mole Mole (c)Victor
+;
+; @autor RuRuRu
+; @date 2023/08/27 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	ld	hl, play_end
+	push	hl		; ret address
+
+	in	a, (03h)	; Code No.
+	add	a,a
+	ld	hl, mustbl
+	ld	e, a
+	ld	d, 00h
+	add	hl, de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	push	de
+	pop	ix
+	jp	(ix)
+
+play_stop:
+	di
+	call	090h
+	ei
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	hl,04100h
+	ld	de,0C000h
+	ld	bc,02A00h
+	ldir
+
+	ld	a, 0C9h
+	ld	(0FD9Fh), a
+
+	ld	a,01h
+	ld	(0F000h),a
+
+	ret
+
+mustbl:
+	dw	0ACF7H		; 00 title
+	dw	0AD6CH		; 01 start
+	dw	0AD84H		; 02
+	dw	0AD9CH		; 03
+	dw	0ADB4H		; 04
+	dw	0ADCCH		; 05
+;	dw	0ADE4H		; --
+;	dw	0ADF3H		; --
+;	dw	0AE0DH		; --
+	dw	0AE25H		; 06
+	dw	0AE45H		; 07 SE move1
+	dw	0AE65H		; 08 SE move2
+	dw	0AE85H		; 09 SE dig
+	dw	0AEA5H		; 0A SE dig
+	dw	0AEC5H		; 0B SE dig
+	dw	0AEE5H		; 0C SE get
+	dw	0AF05H		; 0D
+	dw	0AF25H		; 0E
+	dw	0AF74H		; 0F
+	dw	0AF83H		; 10
+	dw	0AF92H		; 11
+	dw	0AFA1H		; 12
+	dw	0AFB0H		; 13
+	dw	0AFBFH		; 14
+	dw	0AFF3H		; 15
+	dw	0B028H		; 16
