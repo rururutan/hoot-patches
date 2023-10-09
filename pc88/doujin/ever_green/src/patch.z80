@@ -1,0 +1,63 @@
+; Ever Green(OPN) (C)Lotus Roots
+;  based 100yen7 patch by UME-3
+;
+; @autor RuRuRu
+; @date 2023/09/23 1st Release
+;
+
+	cseg
+	org	00000h
+
+intv:	equ	0f3h		; 割り込みベクタ
+stack:	equ	00100h		; スタックエリア
+
+main:
+	di
+	ld	sp,stack
+	im	2
+	ld	a,intv		; 割り込みベクタ設定
+	ld	i,a
+
+	ld	hl,0bfe0h	; 初期化(本来BASICでやっている)
+	ld	de,0fff0h
+	ld	bc,00010h
+	ldir
+
+	call	0db00h		; 効果音関連初期化
+	ld	a,0ffh
+	ld	(0db03h),a
+	ld	a,0e0h		; E000h
+	ld	(0db0ah),a
+
+loop:
+	in	a,(000h)	; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(001h)	; 曲番号を取得
+	cp	0ffh
+	jr	z,effect
+	push	af
+	call	0b003h		; 演奏停止
+	pop	af
+	out	(001h),a	; 曲データロード
+
+	call	0b000h		; 演奏開始
+	jr	loop
+
+effect:
+	inc	a
+	out	(000h),a	; hoot側をリセット
+	in	a,(080h)	; 効果音番号取得
+	ld	(0db02h),a	; 効果音発音
+	jr	loop
+
+stop:
+	xor	a
+	out	(000h),a
+	call	0b003h		; 演奏停止
+	jr	loop
+

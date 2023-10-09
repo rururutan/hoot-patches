@@ -1,0 +1,47 @@
+; Crim (C)TSUKKAsoftware
+;  based 100yen7 patch by UME-3
+;
+; @autor RuRuRu
+; @date 2023/09/23 1st Release
+;
+
+	cseg
+	org	00000h
+
+stack:	equ	00100h		; スタックエリア
+
+main:	di
+	ld	sp,stack
+	im	2
+
+	ld	a,039h
+	ld	(0E6C2h),a
+	call	09810h		; 初期化
+	ei
+
+loop:	ld	hl,check	; デバッグ用カウンタ
+	inc	(hl)
+
+	in	a,(00h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,pushp
+
+	call	09816h		; 演奏停止
+
+	in	a,(01h)		; 曲データロード
+	out	(01h),a
+	call	09813h		; 演奏開始
+	ei
+	jr	loop
+
+pushp:
+	call	09816h		; 演奏停止
+	xor	a
+	out	(00h),a
+	jr	loop
+
+check:	db	0
+
