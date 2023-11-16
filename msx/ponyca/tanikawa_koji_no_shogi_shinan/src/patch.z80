@@ -2,6 +2,7 @@
 ;
 ; @autor RuRuRu
 ; @date 2010/12/20 1st Release
+; @date 2023/11/16 Fix SE
 ;
 
 	cseg
@@ -79,10 +80,11 @@ mustbl:
 	dw	09A04h
 	dw	09A2Fh
 	dw	09A8Ah
-	dw	09AD5h
+;	dw	09AD5h
 
 ; SE
-;	call	0996Fh
-;	call	09979h
-;	call	099A5h
-;	call	099AFh
+	dw	099DEh
+	dw	0996Fh
+	dw	09979h
+	dw	099A5h
+	dw	099AFh
