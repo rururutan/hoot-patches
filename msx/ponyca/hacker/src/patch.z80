@@ -1,0 +1,134 @@
+; Hacker (c)Ponyca
+;
+; @autor RuRuRu
+; @date 2023/11/19 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f37Fh
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+;	call	play_stop
+
+	in	a,(03h)		; Code No.
+	cp	00h
+	jr	nz,play_se
+
+	di
+	ld	hl, irq
+	ld	(0FDA0h), hl
+	ei
+
+	ld	de,06DD0h
+	call	06F28h
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+play_se:
+	dec	a
+
+	di
+	ld	hl, se_irq
+	ld	(0FDA0h), hl
+	ei
+
+	call	077F5h		; init
+
+	ld	hl, play_end
+	push	hl
+
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,tbl_se
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	jp	(hl)
+
+play_stop:
+	di
+	ld	hl, se_irq
+	ld	(0FDA0h), hl
+	ei
+	call	077F5h
+	ret
+
+stop:
+	call	play_stop
+	jr	play_end
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	xor	a
+	ld	(06000h),a
+	inc	a
+	ld	(07000h),a
+
+	ret
+
+irq:
+	call	06F85h
+	ret
+
+se_irq:
+	call	08F86h
+	ret
+
+tbl_se:
+	dw	07282h	; 1
+	dw	se_0	; 2
+	dw	se_1	; 3
+	dw	073D3h	; 4 Noise
+;	dw	07400h	; 5 Noise stop
+	dw	0745Eh	; 6
+	dw	074ACh	; 7
+	dw	se_2	; 8
+	dw	se_3	; 9
+	dw	076DCh	; A
+	dw	07707h	; B
+
+se_0:
+	ld	a, 00h
+	ld	(0C2ECh),a
+	jp	07372h
+
+se_1:
+	ld	a, 01h
+	ld	(0C2ECh),a
+	jp	07372h
+
+se_2:
+	ld	a, 09h
+	ld	(0C324h),a
+	jp	07546h
+
+se_3:
+	ld	a, 10h
+	ld	(0C2F9h),a
+	jp	07647h
