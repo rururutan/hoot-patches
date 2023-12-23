@@ -1,0 +1,82 @@
+;
+; Diablo for PC-88 (c)Broderbund
+;
+; @autor RuRuRu
+; @date 2023/12/23 1st Release
+;
+
+	cseg
+	org	0a000h
+
+stack:	equ	083FFh
+
+main:
+	di
+	im	2
+	ld	sp,stack
+	call	init
+	ei
+loop:
+	in	a,(00h)		; Wait key input
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+	ld	hl, playret
+	push	hl		; return address
+
+	in	a,(01h)
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	jp	(hl)
+
+playret:
+	ld	a, 0ffh
+	out	(01h),a
+	jr	loop
+
+stop:
+	xor	a
+	ld	(040CBh), a
+	jr	loop
+
+init:
+	ld	a, 002h
+	ld	i,a
+
+	ld	a,018H
+	out	(032H),a
+
+	ld	a, 0C9h
+	ld	(00313h),a
+	ld	(01B15h),a
+	ld	(01B68h),a
+	ld	(01D1Dh),a
+	ld	(02457h),a
+	ld	(024B4h),a
+	ld	(024FEh),a
+	ld	(025A9h),a
+
+	call	040FEh
+	ret
+
+mustbl:
+	dw	0256h	; 00
+	dw	02F4h
+	dw	1AF6h
+	dw	2438h
+	dw	258Ah
+	dw	1B5Bh
+	dw	1D10h
+	dw	24A7h
+	dw	24F1h	; 08
