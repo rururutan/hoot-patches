@@ -1,13 +1,14 @@
-; 吉田コンツェルン (c)ASCII/MSXマガ 用
-; メインルーチン
+; 蜷臥伐繧ｳ繝ｳ繝�繧ｧ繝ｫ繝ｳ (c)ASCII/MSX Magazine
+;
+; @autor RuRuRu
+; @date 2012/12/13 1st Release
+; @date 2024/01/12 Fix user tones for MUS00~03
 
 	cseg
 	org	0400h
 
-stack:	equ	0f380h		; スタックエリア
-mdata:	equ	0b400h		; 曲データアドレス
-
-; メインループ
+stack:	equ	0f380h
+mdata:	equ	0b400h
 
 main:
 	di
@@ -17,7 +18,7 @@ main:
 	ei
 
 loop:
-	in	a,(02h)		; キー入力待ち
+	in	a,(02h)		; Key wait
 	or	a
 	jr	z,loop
 
@@ -33,16 +34,50 @@ loop:
 	out	(03h), a
 	ei
 
-	in	a,(04h)		; Loop
+	cp	00h
+	jr	z,b00
+	cp	01h
+	jr	z,b01
+	cp	02h
+	jr	z,b02
+	cp	03h
+	jr	z,b02
+
 	ld	hl, mdata
+pbgm:
+	in	a,(04h)		; Loop
 	call	0D403h		; Play
 	ei
 	jr	loop
 
+b00:	; MUS00.BIN
+	ld	hl, 0B400h
+	ld	de, 0C400h
+	ld	bc, 00200h
+	ldir
+	ld	hl, 0C400h
+	jr	pbgm
+
+b01:	; MUS01.BIN
+	ld	hl, 0B400h
+	ld	de, 0CA00h
+	ld	bc, 00600h
+	ldir
+	ld	hl, 0CA00h
+	jr	pbgm
+
+b02:	; MUS02.BIN / MUS03.BIN
+	ld	hl, 0B400h
+	ld	de, 0C000h
+	ld	bc, 00C00h
+	ldir
+	ld	hl, 0C000h
+	jr	pbgm
+
 stop:
 	call	0D406h		; Stop
 	xor	a
-	out	(02h),a		; hoot status変更
+	out	(02h),a		; Change hoot status
 	jr	loop
 
 init:
