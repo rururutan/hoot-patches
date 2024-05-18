@@ -1,0 +1,62 @@
+;
+; Marmalade II Plus (c)Mugen Loop
+; (C) RuRuRu
+; 2024/05/16 1st Release
+;
+
+	cseg
+	org	1000h
+
+stack:	equ	02FFFh		; stack addres
+
+main:
+	di
+	im	2
+	ld	sp,stack
+	call	init
+	ei
+loop:
+	in	a,(00h)		; cmd wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+	in	a,(080h)	; sub-code
+	cp	01,
+	jr	z, se_play
+
+	call	07E83h		; stop
+
+	in	a,(01h)
+	out	(01h),a		; read data to mdata_addr
+
+	ld	a, 00h
+	call	07812h		; play
+
+	jr	loop
+
+se_play:
+	; TODO
+	jr	play_end
+
+stop:
+	call	07E83h		; stop
+
+play_end:
+	xor	a		; set code end status
+	out	(00h),a
+	jr	loop
+
+init:
+	ld	a, 001h
+	ld	i,a
+
+	call	0D000h		; driver init
+
+	call	05BE0h		; set vector
+
+	ret
+
