@@ -1,0 +1,79 @@
+; 野球狂 (c)Hudson 1985
+;
+; @autor RuRuRu
+; @date 2024/08/18 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f000h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(03h)
+
+	cp	083h
+	jr	nz, play_normal
+
+	push	af
+	ld	a,001H
+	ld	(0E270H),a	; これ立てないと0x83hの曲鳴らない
+	ld	a,001H
+	ld	(0E272H),a	; これは初回実行のみで良い
+	pop	af
+
+	call	05A33h
+loop83:
+	halt
+	halt
+	ld	a, (0E272h)
+	cp	00
+	jr	z,play_end
+	ld	a, 083h
+	call	0595Eh		; Request
+	jr	loop83
+
+play_normal:
+	call	0595Eh		; Request
+	jr	play_end
+
+stop:
+	call	0090h		; Stop
+	call	05A33h
+
+play_end:
+	xor	a
+	ld	(0E272H),a
+	ld	(0E275H),a
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	call	090h
+
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	call	09000h
+	call	05A33h
+	ret
+
+irq:
+	ret
