@@ -1,0 +1,82 @@
+; 毎日がえっち PSG (c)ハート電子
+;
+; @autor RuRuRu
+; @date 2024/08/29 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+mdata:	equ	008000h
+
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	0CA06h		; Stop
+
+	di
+	in	a,(03h)
+	out	(03h),a		; Load data
+	ei
+
+	cp	09h
+	jr	nz, play
+
+	ld	hl, mdata
+	ld	a, 04h
+	ld	(hl),a
+	inc	hl
+	ld	a, 00h
+	ld	(hl),a
+	inc	hl
+	ld	a, 25h
+	ld	(hl),a
+	inc	hl
+	ld	a, 01h
+	ld	(hl),a
+
+play:
+	ld	hl,(mdata)
+	ld	de,mdata
+	add	hl,de
+	push	hl
+	ld	hl,(mdata + 02h)
+	add	hl,de
+	ex	de,hl
+	pop	hl
+	call	0CA03h
+
+	jr	loop
+
+stop:
+	call	0CA06h
+	xor	a		; Stop
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, 0CA00h
+	ld	(0FDA0h), hl
+
+	call	0CA06h
+
+	ret
