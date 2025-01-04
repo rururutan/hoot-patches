@@ -1,0 +1,63 @@
+;
+; せまってみたい PC-88 hoot用演奏ルーチン
+; (C) RuRuRu
+; 2024/11/15 1st Release
+;
+	cseg
+	org	0000h
+
+stack:	equ	00FFFh		; スタックエリア
+
+main:
+	di
+	im	2
+	ld	sp,stack
+	call	init
+	ei
+loop:
+	in	a,(00h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+	call	0C009h
+
+	in	a,(01h)
+	out	(01h),a		; 曲データを読み込む
+
+	call	0C003h
+
+	jr	play_end
+
+stop:
+	call	0C1C6h
+	in	a,(032H)
+	or	080H
+	out	(032H),a
+
+play_end:
+	xor	a		; 停止処理
+	out	(00h),a
+	jr	loop
+
+init:
+	ld	a, 0F3h
+	ld	i,a
+
+	ld	a, 0C9h
+	ld	(0E814h),a	; Dummy IRQ
+
+	ld	a, 19h		; Control Port
+	ld	(0E6C2h),a
+	ld	a, 07h		; PIC level
+	ld	(0E6C3h),a
+
+	ld	hl,0D000h
+	ld	(0E1FCh),hl
+
+	call	0C009h
+
+	ret
