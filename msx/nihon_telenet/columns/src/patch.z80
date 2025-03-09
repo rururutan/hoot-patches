@@ -1,0 +1,120 @@
+; MSX2 Columns (c)Compile/Telnet
+;
+; @autor RuRuRu
+; @date 2011/09/09 1st Release
+; @date 2015/01/12 Fix device support
+
+	cseg
+	org	08000h
+
+stack:	equ	0d000h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a,(04h)
+	cp	01
+	call	z,play_stop
+
+	in	a,(03h)		; Code No.
+	call	026E1h		; Play
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	026A2h		; Stop
+	ret
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0038h), a
+	ld	hl, timer
+	ld	(0039h), hl
+
+; Init
+	ld	a, 0C9h
+	ld	(04000h),a		; patch
+
+	ld	a, 09h			; init value
+	call	0C831h			; decode
+
+	in	a, (07h)
+	cp	00
+	jr	z,dev_psg
+	and	01h
+	jp	z,devmsxa
+	ld	a, 080h			; opll
+	jp	dev_opll
+dev_msxa:
+	ld	a, 0A0h			; msx-audio
+dev_opll:
+	call	02598h
+	ld	a, 0C0h			; fm 9ch
+
+dev_psg:
+	call	02598h
+
+	ld	a, 01h
+	call	02598h
+	ld	a, 03h
+	ld	hl,06164h		; table (6164)
+	call	02598h
+
+; Speed
+	xor	a
+	ld	(0BFFEH),a
+	inc	a
+	ld	(0BFFFH),a
+
+	call	026A2h			; Stop
+	ret
+
+timer:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	0171CH
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret
