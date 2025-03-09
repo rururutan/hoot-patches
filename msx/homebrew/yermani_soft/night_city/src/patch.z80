@@ -1,0 +1,92 @@
+; Night City (c)Yermani Soft
+;
+; @autor RuRuRu
+; @date 2016/10/02 1st Release
+;
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	in	a,(03h)		; Code No.
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,mustbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	h,(hl)
+	ld	l,a
+	ld	de, 0C9B0h
+	call	09C3Dh
+	call	0C100h
+
+	ld	a, 0C3h
+	ld	(0FD9Ah), a
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+play_stop:
+	call	06BE9h
+	call	0C11Eh
+	ret
+
+stop:
+	call	play_stop
+
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+init:
+	ld	a, 0C9h
+	ld	(0FD9Ah), a
+	ld	hl, 0C5B1h
+	ld	(0FD9Bh), hl
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	ld	a, 01h
+	ld	(06800h), a
+	ld	a, 02h
+	ld	(07000h), a
+	ld	a, 07h
+	ld	(07800h), a
+
+	call	06A30h
+
+	ld	hl,0A041H
+	ld	de,0C100H
+	call	09C3DH
+
+	ret
+
+irq:
+	jp	0FD9Ah
+
+mustbl:
+	dw	0A60Fh
+	dw	0AAB2h
+	dw	0B0CEh
