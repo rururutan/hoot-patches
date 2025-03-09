@@ -1,5 +1,7 @@
-; PLAY98.COM (ƒI[ƒ‹ƒhƒ”ƒBƒŒƒbƒWƒXƒg[ƒŠ[)
-; ƒƒCƒ“ƒ‹[ƒ`ƒ“ (for pc98dos)
+; PLAY98.COM (ã‚ªãƒ¼ãƒ«ãƒ‰ãƒ´ã‚£ãƒ¬ãƒƒã‚¸ã‚¹ãƒˆãƒ¼ãƒªãƒ¼)
+;
+; @autor RuRuRu
+; @date 2008/06/07 1st Release
 
 %include 'hoot.inc'
 int_hoot	equ	07fh
@@ -16,42 +18,42 @@ start:
 		mov	es,ax
 
 		mov	dx,HOOTFUNC
-		mov	al,HF_DISABLE		; ‰Šú‰»’†‚ÍhootŒÄ‚Ño‚µ‚ğ‹Ö~
+		mov	al,HF_DISABLE		; åˆæœŸåŒ–ä¸­ã¯hootå‘¼ã³å‡ºã—ã‚’ç¦æ­¢
 		out	dx,al
 
-		mov	ax,cs			; ƒXƒ^ƒbƒNİ’è
+		mov	ax,cs			; ã‚¹ã‚¿ãƒƒã‚¯è¨­å®š
 		mov	ss,ax
 		mov	sp,stack
 
 		mov	bx,prgend
 		add	bx,0x0f
 		shr	bx,4
-		mov	ah,0x4a			; [DOS] ƒƒ‚ƒŠƒuƒƒbƒN‚Ìk¬(ES:BX)
+		mov	ah,0x4a			; [DOS] ãƒ¡ãƒ¢ãƒªãƒ–ãƒ­ãƒƒã‚¯ã®ç¸®å°(ES:BX)
 		int	0x21
 
-		mov	ah,0x48			; [DOS] ƒ[ƒhƒoƒbƒtƒ@‚ÌŠ„‚è“–‚Ä
+		mov	ah,0x48			; [DOS] ãƒ­ãƒ¼ãƒ‰ãƒãƒƒãƒ•ã‚¡ã®å‰²ã‚Šå½“ã¦
 		mov	bx,0x400
 		int	0x21
 		mov	[loadseg],ax
 
-		mov	ax,0x257f		; hootƒhƒ‰ƒCƒo“o˜^
+		mov	ax,0x257f		; hootãƒ‰ãƒ©ã‚¤ãƒç™»éŒ²
 		mov	dx,vect_hoot
 		int	0x21
 
 		mov	dx,HOOTFUNC
-		mov	al,HF_ENABLE		; hootŒÄ‚Ño‚µ‚ğ‹–‰Â
+		mov	al,HF_ENABLE		; hootå‘¼ã³å‡ºã—ã‚’è¨±å¯
 		out	dx,al
 		sti
 
 mainloop:
-		mov	ax,0x9801		; ƒ_ƒ~[ƒ|[ƒŠƒ“ƒO
+		mov	ax,0x9801		; ãƒ€ãƒŸãƒ¼ãƒãƒ¼ãƒªãƒ³ã‚°
 		int	0x18
 		jmp	short mainloop
 
-; hoot‚©‚çƒR[ƒ‹‚³‚ê‚é
-; inp8(HOOTPORT) = 0 ¨ PC98DOS::Play
-; inp8(HOOTPORT) = 2 ¨ PC98DOS::Stop
-; _code = inp8(HOOTPORT+2)`inp8(HOOTPORT+5)
+; hootã‹ã‚‰ã‚³ãƒ¼ãƒ«ã•ã‚Œã‚‹
+; inp8(HOOTPORT) = 0 â†’ PC98DOS::Play
+; inp8(HOOTPORT) = 2 â†’ PC98DOS::Stop
+; _code = inp8(HOOTPORT+2)ï½inp8(HOOTPORT+5)
 
 vect_hoot:
 		pusha
@@ -73,7 +75,7 @@ vect_hoot:
 		iret
 
 .play:
-		mov	al,0x00		; ‰‰‘t’â~
+		mov	al,0x00		; æ¼”å¥åœæ­¢
 		int	int_driver
 
 		mov	ax,[cs:loadseg]
@@ -81,26 +83,26 @@ vect_hoot:
 		xor	dx,dx
 		mov	cx,0xffff
 		mov	ah,0x3f		; read hundle
-		xor	bx,bx		; •W€“ü—Í‚©‚ç
-		int	0x21		; ‹Èƒf[ƒ^ƒ[ƒh
+		xor	bx,bx		; æ¨™æº–å…¥åŠ›ã‹ã‚‰
+		int	0x21		; æ›²ãƒ‡ãƒ¼ã‚¿ãƒ­ãƒ¼ãƒ‰
 		jc	.ed
 
 		xor	bx,bx		; data address
-		mov	al,0xbd		; ƒf[ƒ^ƒ[ƒh(DS:BX)
+		mov	al,0xbd		; ãƒ‡ãƒ¼ã‚¿ãƒ­ãƒ¼ãƒ‰(DS:BX)
 		int	int_driver
 		jmp	short .ed
 
 .stop:
 .fadeout:
-		mov	al,0x00		; ‰‰‘t’â~
+		mov	al,0x00		; æ¼”å¥åœæ­¢
 		int	int_driver
 
 		jmp	short .ed
 
-loadseg:	dw	0		; ƒ[ƒhƒZƒOƒƒ“ƒg
+loadseg:	dw	0		; ãƒ­ãƒ¼ãƒ‰ã‚»ã‚°ãƒ¡ãƒ³ãƒˆ
 
 		align	0x10
-		times 0x100 db 0xff	; ƒXƒ^ƒbƒNƒGƒŠƒA
+		times 0x100 db 0xff	; ã‚¹ã‚¿ãƒƒã‚¯ã‚¨ãƒªã‚¢
 
 stack:
 
