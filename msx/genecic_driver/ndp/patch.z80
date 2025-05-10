@@ -1,0 +1,47 @@
+; NDP ©Naruto
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+mdata:	equ	04000h		; Music Data Address
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	0C006h
+
+	di
+	in	a,(03h)		; Code No.
+	out	(03h), a	; Data Load
+	ei
+
+	call	0C003h
+	jr	loop
+
+stop:
+	call	0C006h
+
+play_end:
+	xor	a
+	out	(02h),a		; Change to hoot status
+	jr	loop
+
+init:
+	call	0C000h
+
+	ld	de, mdata
+	call	0C03Ch
+	ret
