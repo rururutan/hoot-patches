@@ -1,9 +1,8 @@
-; Advance D&D Dragon Strike SOUND.EXE ‰‰‘t
-; ƒƒCƒ“ƒ‹[ƒ`ƒ“ (for pc98dos)
+; Advance D&D Dragon Strike SOUND.EXE
+; (C) RuRuRu
+; 2013/10/20 1st Release
+; 2025/08/01 Fix tempo
 ;
-; HOOTPORT + 2~3 : ƒtƒ@ƒCƒ‹ƒnƒ“ƒhƒ‹”Ô†
-;
-
 %include 'hoot.inc'
 int_hoot	equ	0x7f
 int_driver	equ	0x7e
@@ -19,10 +18,10 @@ start:
 		mov	es, ax
 
 		mov	dx, HOOTFUNC
-		mov	al, HF_DISABLE		; ‰Šú‰»’†‚ÍhootŒÄ‚Ño‚µ‚ğ‹Ö~
+		mov	al, HF_DISABLE		; åˆæœŸåŒ–ä¸­ã¯hootå‘¼ã³å‡ºã—ã‚’ç¦æ­¢
 		out	dx, al
 
-		mov	ax, cs			; ƒXƒ^ƒbƒNİ’è
+		mov	ax, cs			; ã‚¹ã‚¿ãƒƒã‚¯è¨­å®š
 		mov	ss, ax
 		mov	sp, stack
 
@@ -32,10 +31,10 @@ start:
 		mov	ah, 0x4a		; AH=4a modify alloc memory(ES:BX)
 		int	0x21
 
-		mov	bx,0x1000		; ‘å‚«‚³“K“–
-		mov	ah,0x48			; AH=48 ƒƒ‚ƒŠŠ„‚è“–‚Ä(SOUND.EXE—p)
+		mov	bx,0x1000		; å¤§ãã•é©å½“
+		mov	ah,0x48			; AH=48 ãƒ¡ãƒ¢ãƒªå‰²ã‚Šå½“ã¦(SOUND.EXEç”¨)
 		int	0x21
-		mov	[ovrparam],ax		; entryXV
+		mov	[ovrparam],ax		; entryæ›´æ–°
 		mov	[drvseg], ax
 		mov	[drvseg2], ax
 		mov	[drvseg3], ax
@@ -55,25 +54,25 @@ start:
 		out	0x02, al
 		out	0x64, al
 
-		mov	ah, 0x25		; hootƒhƒ‰ƒCƒo“o˜^
+		mov	ah, 0x25		; hootãƒ‰ãƒ©ã‚¤ãƒç™»éŒ²
 		mov	al, int_hoot
 		mov	dx, vect_hoot
 		int	0x21
 
 		mov	dx, HOOTFUNC
-		mov	al, HF_ENABLE		; hootŒÄ‚Ño‚µ‚ğ‹–‰Â
+		mov	al, HF_ENABLE		; hootå‘¼ã³å‡ºã—ã‚’è¨±å¯
 		out	dx, al
 		sti
 
 mainloop:
-		mov	ax, 0x9801		; ƒ_ƒ~[ƒ|[ƒŠƒ“ƒO
+		mov	ax, 0x9801		; ãƒ€ãƒŸãƒ¼ãƒãƒ¼ãƒªãƒ³ã‚°
 		int	0x18
 		jmp	short mainloop
 
-; hoot‚©‚çƒR[ƒ‹‚³‚ê‚é
-; inp8(HOOTPORT) = 0 ¨ PC98DOS::Play
-; inp8(HOOTPORT) = 2 ¨ PC98DOS::Stop
-; _code = inp8(HOOTPORT+2)`inp8(HOOTPORT+5)
+; hootã‹ã‚‰ã‚³ãƒ¼ãƒ«ã•ã‚Œã‚‹
+; inp8(HOOTPORT) = 0 â†’ PC98DOS::Play
+; inp8(HOOTPORT) = 2 â†’ PC98DOS::Stop
+; _code = inp8(HOOTPORT+2)ï½inp8(HOOTPORT+5)
 
 vect_hoot:
 		pusha
@@ -138,7 +137,7 @@ waitvsync:
 		pop	ax
 		ret
 
-; SOUND.EXE‚©‚çƒR[ƒ‹‚³‚ê‚éƒtƒ@ƒCƒ‹ƒ[ƒhŠÖ”
+; SOUND.EXEã‹ã‚‰ã‚³ãƒ¼ãƒ«ã•ã‚Œã‚‹ãƒ•ã‚¡ã‚¤ãƒ«ãƒ­ãƒ¼ãƒ‰é–¢æ•°
 ; BX:BP = buf
 ; CX = size
 file_load:
@@ -159,18 +158,17 @@ file_load:
 		pop	ds
 		retf
 
-; SOUND.EXEƒ[ƒh
+; SOUND.EXEãƒ­ãƒ¼ãƒ‰
 drv_load:
 		mov	ax, 0x4b03		; [DOS] Overlay Load
-		mov	dx, exec_path		; ƒpƒX–¼ (DS:DX)
-		mov	bx, ovrparam		; ƒpƒ‰ƒ[ƒ^ƒuƒƒbƒN(ES:BX)
+		mov	dx, exec_path		; ãƒ‘ã‚¹å (DS:DX)
+		mov	bx, ovrparam		; ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ–ãƒ­ãƒƒã‚¯(ES:BX)
 		int	0x21
-
-		call	far [cs:initent]
 
 		push	ds
 		mov	ax, [drvseg]
 		mov	ds, ax
+		call	far [cs:initent]
 		mov	ax, file_load
 		mov	[ds:0x110], ax
 		mov	[ds:0x112], cs
@@ -185,13 +183,26 @@ vsync_ent:
 		out	0x00, al
 		pop	ax
 		call	far [cs:irqent]
+		mov	al, [irq_cnt]
+		inc	al
+		mov	[irq_cnt],al
+		cmp	al,2
+		jz	ent_end
+		mov	al, 0
+		mov	[irq_cnt],al
+		call	far [cs:irqent]
+ent_end:
 		iret
+
+irq_cnt:
+	db	00
 
 exec_path:
 	db	'SOUND.EXE',00
 
 initent;
-	dw	0x187
+	dw	0x0000
+;	dw	0x187
 drvseg:
 	dw	0
 playent;
@@ -216,15 +227,14 @@ drvseg6:
 	dw	0
 
 
-; ƒI[ƒoƒŒƒCƒ[ƒh—pƒpƒ‰ƒ[ƒ^ƒuƒƒbƒN
+; ã‚ªãƒ¼ãƒãƒ¬ã‚¤ãƒ­ãƒ¼ãƒ‰ç”¨ãƒ‘ãƒ©ãƒ¡ãƒ¼ã‚¿ãƒ–ãƒ­ãƒƒã‚¯
 ovrparam:
-		dw	0			; SOUND.EXE—pƒ[ƒhƒZƒOƒƒ“ƒg
-		dw	0			; ƒŠƒƒP[ƒVƒ‡ƒ“ƒtƒ@ƒNƒ^
+		dw	0			; SOUND.EXEç”¨ãƒ­ãƒ¼ãƒ‰ã‚»ã‚°ãƒ¡ãƒ³ãƒˆ
+		dw	0			; ãƒªãƒ­ã‚±ãƒ¼ã‚·ãƒ§ãƒ³ãƒ•ã‚¡ã‚¯ã‚¿
 
 		align	0x10
-		times 0x100 db 0xff		; ƒXƒ^ƒbƒNƒGƒŠƒA
+		times 0x100 db 0xff		; ã‚¹ã‚¿ãƒƒã‚¯ã‚¨ãƒªã‚¢
 
 stack:
-
 prgend:
 		ends
