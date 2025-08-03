@@ -2,6 +2,7 @@
 ;
 ; @author RuRuRu
 ; @date 2011/01/12 1st Release
+; @date 2025/08/03 Support Boss Music
 
 	cseg
 	org	0400h
@@ -28,6 +29,8 @@ loop:
 	in	a,(03h)		; Code No.
 	cp	0Eh
 	jr	z, play_voice
+	cp	0Fh
+	jr	z, play_boss
 	cp	02h
 	jr	c, play_oped
 
@@ -39,16 +42,13 @@ loop:
 
 	ld	a,000H
 	ld	(06000H),a
-	call	04B62h		; Initialize
 
 	in	a,(03h)		; Code No.
 	dec	a
-	ld	(0E3CAh), a
-	call	04CB5h
+	ld	(0E3CAh), a	; Code 1~
 
-	ld	hl, 0CA00h
-	call	04F8Ah
-
+	call	04B62h		; Initialize
+	call	04CB5h		; Load
 	ei
 
 play_end:
@@ -102,6 +102,26 @@ play_voice:
 
 	call	08362h
 	jr	play_end
+
+play_boss:
+	di
+	ld	a, 00h
+	ld	(flg_drv), a
+
+	ld	a,000H
+	ld	(06000H),a
+
+	ld	a, 01h
+	ld	(0E3CAh), a	; Code 1 origin
+
+	call	04B62h		; Initialize
+	call	04CB5h		; Load
+
+	ld	hl, 09F87h
+	call	043D7h
+	ei
+	jr	play_end
+
 
 stop:
 	di
