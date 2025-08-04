@@ -3,6 +3,7 @@
 ; @author RuRuRu
 ; @date 2011/01/12 1st Release
 ; @date 2025/08/03 Support Boss Music
+; @date 2025/08/04 Support SE
 
 	cseg
 	org	0400h
@@ -24,6 +25,10 @@ loop:
 	cp	01h
 	jr	nz,play_stop
 
+	in	a,(04h)		; Code No.
+	cp	00h
+	jp	nz,play_se
+
 	call	stop
 
 	in	a,(03h)		; Code No.
@@ -35,11 +40,10 @@ loop:
 	jr	c, play_oped
 
 ; main play
-
-	di
 	ld	a, 00h
 	ld	(flg_drv), a
 
+	di
 	ld	a,000H
 	ld	(06000H),a
 
@@ -61,10 +65,10 @@ play_stop:
 	jr	play_end
 
 play_oped:
-	di
 	ld	a, 01h
 	ld	(flg_drv), a
 
+	di
 	ld	a,000H
 	ld	(06000H),a
 	ld	a,01dH
@@ -104,10 +108,10 @@ play_voice:
 	jr	play_end
 
 play_boss:
-	di
 	ld	a, 00h
 	ld	(flg_drv), a
 
+	di
 	ld	a,000H
 	ld	(06000H),a
 
@@ -122,6 +126,29 @@ play_boss:
 	ei
 	jr	play_end
 
+play_se:
+	ld	a, (flg_drv)
+	cp	00
+	jr	nz,play_end
+
+	in	a,(03h)		; Code No.
+	add	a,a
+	add	a,a
+	ld	l,a
+	ld	h,000H
+	ld	de,se_tbl
+	add	hl,de
+	ld	a,(hl)
+	inc	hl
+	ld	d,(hl)
+	ld	e,a
+	inc	hl
+	ld	c,(hl)
+	inc	hl
+	ld	b,(hl)
+	call	04486H
+	ei
+	jp	play_end
 
 stop:
 	di
@@ -143,3 +170,15 @@ init:
 
 flg_drv:
 	db	00h
+
+se_tbl:
+	dw	09E36H, 00205H
+	dw	09E7AH, 00205H
+	dw	09E9BH, 00201H
+	dw	09E62H, 00205H
+	dw	09E62H, 00209H
+	dw	09E62H, 0020AH
+	dw	09E8BH, 0020AH
+	dw	09ED4H, 00205H
+	dw	09F02H, 00205H
+	dw	09F67H, 00205H
