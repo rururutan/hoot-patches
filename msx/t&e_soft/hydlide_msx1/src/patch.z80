@@ -2,6 +2,7 @@
 ;
 ; @author RuRuRu
 ; @date 2011/08/18 1st Release
+; @date 2025/08/09 More SE support
 
 	cseg
 	org	0400h
@@ -42,6 +43,8 @@ loop:
 	jr	z,se_5
 	cp	08h
 	jr	z,se_6
+	cp	09h
+	jr	z,se_7
 
 main_bgm:
 	call	08BE1h
@@ -63,74 +66,89 @@ init:
 	ret
 
 se_0:
-	call	05D52H		; PSG
-	call	05D04H		; Wait 2000
+	call	05D52H
+	call	05D04H
 	jr	play_end
 
 se_1:
-	call	05D37H		; PSG
-	call	05D04H		; Wait 2000
+	call	05D37H
+	call	05D04H
 	jr	play_end
 
 se_2:
-	call	05D1CH		; PSG
-	call	05D04H		; Wait 2000
-	call	05D52H		; PSG
+	call	05D1CH
+	call	05D04H
+	call	05D52H
 	jr	play_end
 
 se_3:
-	call	05D37H		; PSG
-	call	05D04H		; Wait 2000
-	call	05D52H		; PSG
-	call	05D04H		; Wait 2000
+	ld	b, 03h		; ItemÇÃèÍçáÇÕ3loop
+se_3lp:
+	push	bc
+	call	05D37H
+	call	05D04H
+	halt
+	call	05D52H
+	call	05D04H
+	halt
+	pop	bc
+	djnz	se_3lp
 	jr	play_end
 
 se_4:
-	call	05D20H		; PSG
-	call	05D24H		; PSG
-	call	05D28H		; PSG
-	call	05D52H		; PSG
-	jr	play_end
+	ld	b, 05h		; FiaryÇÃèÍçáÇÕ5loop
+	jp	se_3lp
 
 se_5:
-	call	05D28H		; PSG
-	call	05D24H		; PSG
-	call	05D20H		; PSG
-	call	05D24H		; PSG
-	call	05D28H		; PSG
-	call	05D32H		; PSG
+	call	05D20H
+	call	05D24H
+	call	05D28H
+	call	05D52H
 	jr	play_end
 
 se_6:
-	call	05D18H		; PSG
-	call	05D04H		; Wait 2000
-	call	05D52H		; PSG
+	call	05D28H
+	call	05D24H
+	call	05D20H
+	call	05D24H
+	call	05D28H
+	call	05D32H
+	jr	play_end
+
+se_7:
+	call	05D18H
+	call	05D04H
+	call	05D52H
 	jr	play_end
 
 game_over:
 	call	08C08h		; Stop
-	ld	b,004H		;
+	ld	b,004H
 go_loop:
 	push	bc
-	call	05D20H		; PSG
-	call	05D32H		; PSG
-
+	call	05D20H
+	call	05D32H
+	halt
 	ld	bc, 01000h
 	call	05D07H
 
-	call	05D24H		; PSG
-	call	05D32H		; PSG
-
+	call	05D24H
+	call	05D32H
+	halt
 	ld	bc, 01000h
 	call	05D07H
+
 	pop	bc
 	djnz	go_loop
 
-	call	05D20H		; PSG
-	call	05D24H		; PSG
-	call	05D28H		; PSG
-	call	05D24H		; PSG
-	call	05D20H		; PSG
-	call	05D20H		; PSG
-	call	05D32H		; PSG
+	call	05D20H
+	call	05D24H
+	halt
+	call	05D28H
+	call	05D24H
+	halt
+	call	05D20H
+	call	05D20H
+	halt
+	call	05D32H
 	jp	play_end

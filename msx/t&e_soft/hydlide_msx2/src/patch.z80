@@ -2,8 +2,9 @@
 ;
 ; @author RuRuRu
 ; @date 2016/10/11 1st Release
+; @date 2025/08/09 Support song of Game Over & SE
 ;
-; Ë£ΩÂìÅÁâà„ÄÅMSX-FAN‰ªòÂ±ûÂìÅÂÖ±„Å´ÂØæÂøú
+; êªïiî≈ÅAMSX-FANïtëÆïiã§Ç…ëŒâû
 
 	cseg
 	org	0400h
@@ -27,13 +28,89 @@ loop:
 
 	in	a,(03h)		; Code No.
 	cp	01
-	jr	z, play_se
+	jr	z, play_gover
+	cp	02
+	jr	z, play_se1
+	cp	03
+	jr	z, play_se2
+	cp	04
+	jr	z, play_se3
+	cp	05
+	jr	z, play_se4
+	cp	06
+	jr	z, play_se5
+	cp	07
+	jr	z, play_se6
 
 	call	0C6EAh
 	jr	play_end
 
-play_se:
-	call	09C24h
+play_gover:
+	call	0C70Ah		; Stop
+	ld	b,004H
+se_loop:
+	push	bc
+	call	09BFBH
+	call	09C0DH
+	halt
+	halt
+	call	09BFFH
+	call	09C0DH
+	halt
+	halt
+	pop	bc
+	djnz	se_loop
+	call	09BFBH
+	call	09BFFH
+	call	09C03H
+	call	09BFFH
+	call	09BFBH
+	call	09BFBH
+	call	09C0DH
+	jr	play_end
+
+; SE Attack
+play_se1:
+	call	09BF7H
+	call	09BDFH
+	call	09C2DH
+	jr	play_end
+
+; SE Get item
+play_se2:
+	ld	b,03h
+se3lp:
+	push	bc
+	call	09C12H
+	call	09BDFH
+	halt
+	call	09C2DH
+	call	09BDFH
+	halt
+	pop	bc
+	djnz	se3lp
+	jr	play_end
+
+play_se3:
+	ld	b,05h
+	jr	se3lp
+
+play_se4:
+	call	09BFBH
+	call	09BFFH
+	call	09C03H
+	call	09C2DH
+	jr	play_end
+
+; HP recovery
+play_se5:
+	call	09C24H
+	jr	play_end
+
+play_se6:
+	call	09BF3H
+	call	09BDFH
+	call	09C2DH
 	jr	play_end
 
 stop:
@@ -42,9 +119,12 @@ stop:
 play_end:
 	xor	a
 	out	(02h),a		; Change hoot status
-	jr	loop
+	jp	loop
 
 init:
 	call	0C6D1h		; Set IRQ
+
+	ld	a, 038h		; Change wait
+	ld	(09C0Ah),a
 
 	ret
