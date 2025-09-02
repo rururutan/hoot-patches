@@ -1,0 +1,156 @@
+; Ultima III Exodus (c)Ponyca
+; Need FMPAC.ROM
+;
+; @autor RuRuRu
+; @date 2025/09/02 1st Release
+;
+
+	cseg
+	org	0b100h
+
+stack:	equ	0f380h
+mdata:	equ	0d000h		; Temporary data address
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+	jp	loop
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	08E62h		; Stop
+
+	di
+	in	a,(03h)
+	out	(03h),a		; Load data
+	ei
+
+	ld	hl, mdata
+	push	hl
+	ld	bc, 00000h
+	in	a,(04h)		; Sub Index
+	add	a, a
+	ld	c, a
+	add	hl, bc
+	ld	c, (hl)
+	inc	hl
+	ld	b, (hl)
+	push	bc
+	pop	hl
+	pop	bc
+	add	hl, bc
+	ld	de, 09300h
+	ld	bc, 00600h
+	ldir
+
+	call	08EC5h
+	ei
+
+	jr	loop
+
+stop:
+	call	08E62h
+
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0C9h
+	ld	(08DD6h),a
+
+	ld	a, 0C3h
+	ld	(001Ch), a
+	ld	(0038h), a
+
+	ld	hl, irq
+	ld	(0039h), hl
+	ld	hl, calslt
+	ld	(001Dh), hl
+
+	xor	a
+	ld	(0BB9Ch), a	; OPLL flag
+
+	in	a,(07h)		; Check device(01:opll)
+	and	01h
+	jp	z,init_end
+	ld	a, 80h
+	ld	(0BB9Ch), a	; OPLL flag
+
+	ld	a, 03Fh		; m-slot : ram/ram/ram/bios
+	out	(0A8h),a
+	ld	a, 04h
+	ld	(0FFFFh),a	; s-slot : bios/fmbios/none/none
+	ld	a, 0F3h		; m-slot : ram/fmbios/ram/ram
+	out	(0A8h),a
+
+init_end:
+	ld	a, 01h
+	ld	(0C783h), a
+	call	08E3Bh
+	ret
+
+calslt:
+	di
+	push	af
+	push	bc
+
+	push	af
+	ld	a, 0F3h		; ram/fmbios/ram/ram
+	out	(0A8h), a
+	pop	af
+
+	push	hl
+	ld	hl, end_calslt
+	push	hl
+	pop	bc
+	pop	hl
+
+	push	bc
+	jp	(ix)
+end_calslt:
+	ld	a, 0FFh		; ram/ram/ram/ram
+	out	(0A8h), a
+	pop	bc
+	pop	af
+	ret
+
+irq:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	di
+	call	08AB1h
+	ei
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret
