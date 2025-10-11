@@ -1,0 +1,73 @@
+; Disc Pana Amusement Collection: Menu/フンフンばすけっと (c)T&E soft/Panasoft
+;
+; @author RuRuRu
+; @date 2016/08/06 1st Release
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+	call	0C009h		; Stop
+
+	in	a,(03h)		; Code No.
+	out	(03h),a
+
+	ld	hl, 0B800h
+	ld	b, 00h		; FadeIn値 0Ahでゲーム内で使用してる値
+	xor	a
+	call	0C006h
+	jr	play_end
+
+stop:
+	call	0C009h		; Stop
+
+play_end:
+	xor	a
+	out	(02h),a		; Change hoot status
+	jr	loop
+
+init:
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	call	0C003h
+
+	in	a, (07h)
+	cp	01h
+	jr	nz, init_psg
+
+	ld	hl,0C040h
+	ld	de,0C000h
+	ld	bc,0018h
+	ldir
+	ret
+
+init_psg:
+	ld	hl,0C060h
+	ld	de,0C000h
+	ld	bc,0018h
+	ldir
+	ret
+
+irq:
+	call	0C000h
+	ret
