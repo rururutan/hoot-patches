@@ -1,0 +1,135 @@
+; 天九牌 Special 桃源の宴
+;
+; @author RuRuRu
+; @date 2025/11/1 1st Release
+
+
+	cseg
+	org	0A000h
+
+stack:	equ	0F380h		; Stack
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call 	init
+	ei
+
+loop:
+	in	a,(02h)			; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	05BEDh		; Stop
+
+	in	a,(03h)
+	out	(03h),a
+
+	call	062C6h		; Work init
+	ld	a, 01h
+	call	05C23h		; Play
+	jr	play_end
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; Chagne hoot status
+	out	(02h),a
+	jr	loop
+
+play_stop:
+	call	05BEDh
+	ret
+
+init:
+	ld	a, 0C3h
+	ld	(0001Ch), a
+	ld	(00038h), a
+	ld	(00090h), a
+	ld	(00093h), a
+	ld	hl, irq
+	ld	(00039h), hl
+	ld	hl, calslt
+	ld	(0001Dh), hl
+	ld	hl, psgini
+	ld	(00091h), hl
+	ld	hl, psgw
+	ld	(00094h), hl
+
+	; 00:PSG 02:OPLL
+	in	a, (07h)
+	or	a
+	jr	z, devpsg
+	ld	a,03h
+	jp	devopll
+devpsg:
+	ld	a,02h
+devopll:
+	ld	(05A8Fh),a	; Machine flag
+
+	call	05B69h		; init
+
+	ret
+
+calslt:
+	jp	(ix)
+
+psgini:
+	ld	e,00h
+	ld	a,08h
+	call	psgw
+	inc	a
+	call	psgw
+	inc	a
+	call	psgw
+	inc	a
+
+	ld	e,0B8h
+	ld	a,07
+	call	psgw
+	ret
+
+psgw:
+	di
+	out     (0A0h),a
+	push    af
+	ld      a,e
+	out     (0A1h),a
+	ei
+	pop     af
+	ret
+
+irq:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	05CC6h
+	ei
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret
