@@ -1,0 +1,77 @@
+;
+; Otome Party for PC-88 (c)Technopolice Soft
+;
+; @autor RuRuRu
+; @date 2026/01/18 1st Release
+;
+
+	cseg
+	org	01000h
+
+stack:	equ	08000h
+
+main:
+	di
+	im	2
+	ld	sp,stack
+	call	init
+	ei
+loop:
+	in	a,(00h)		; Wait key input
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+play:
+	in	a,(01h)
+	out	(01h),a		; load request
+
+	xor	a
+	call	02003h		; play
+
+	jr	loop
+
+stop:
+	call	02009h		; stop
+	jr	loop
+
+init:
+	ld	a, 000h
+	ld	i,a
+
+;	ld	a,018H
+;	out	(032H),a
+
+	ld	hl, irq
+	ld	(0008h), hl
+
+	call	02000h
+	ret
+
+irq:
+	di
+	push	af
+	in	a, (032h)
+	push	af
+	push	hl
+	push	de
+	push	bc
+	push	ix
+	push	iy
+	and	0bfh
+	out	(032h), a
+	call	02012h
+	ld	a, 005h
+	out	(0E4h),a
+	pop	iy
+	pop	ix
+	pop	bc
+	pop	de
+	pop	hl
+	pop	af
+	out	(032h),a
+	pop	af
+	ei
+	ret
