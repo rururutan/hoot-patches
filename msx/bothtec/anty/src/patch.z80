@@ -1,0 +1,51 @@
+; Anty (c)Bothtec
+;
+; @author RuRuRu
+; @date 2025/03/06 1st Release
+
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	di
+	in	a,(03h)		; Code No.
+	call	0A980h
+	ei
+	jr	play_end
+
+stop:
+	di
+	ld	a, 040h
+	call	0A980h
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	call	0090h
+	ld	a, 0C3h
+	ld	(0FD9FH),a
+	ld	hl,0A9DFH
+	ld	(0FDA0H),hl
+	ret

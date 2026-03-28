@@ -1,0 +1,106 @@
+; Macross: Count Down (c)Bothtec
+;
+; @author RuRuRu based Asuka's patch
+; @date 2026/03/28 1st Release
+
+
+	cseg
+	org	0400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+	call	play_stop
+
+	in	a, (03h)	; Code No.
+	cp	00h
+	jr	z, play_title
+
+	push	af
+	ld	a, (flg_drv)
+	cp	00
+	call	0BB10h		; Init Main driver
+	call	0BB2Eh
+	ld	a, 01
+	ld	(flg_drv), a
+	pop	af
+
+	sub	1
+	add	a, a
+	add	a, a
+	ld	l, a
+	ld	h, 00h
+	ld	de, mustbl
+	add	hl, de
+	ld	e, (hl)
+	inc	hl
+	ld	d, (hl)
+	inc	hl
+	ld	a, (hl)
+	push	de
+	pop	hl
+	call	0BB54h		; Play Request
+	jr	play_end
+
+play_title:
+	xor	a
+	ld	(flg_drv), a
+	call	06A89h		; Init & Request
+	jr	play_end
+
+play_stop:
+	ld	a, (flg_drv)
+	cp	01
+	jr	z, play_stop2
+	di
+	ld	a, 0C3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h),hl
+	ei
+	call	090h
+	ret
+play_stop2:
+	call	0BB3Ah
+	ret
+
+stop:
+	call	play_stop
+
+play_end:
+	xor	a		; hoot statusïœçX
+	out	(02h),a
+	jr	loop
+
+init:
+	ret
+
+irq:
+	ret
+
+mustbl:
+	dw	0BF4Ch	; BGM
+	db	01h,00
+	dw	0BEE7h	; Shot
+	db	08h,00
+	dw	0BE8Ah	; Hit
+	db	09h,00
+	dw	0BF0Bh	; Miss
+	db	0Ah,00
+
+flg_drv:
+	db	00
