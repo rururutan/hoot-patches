@@ -1,1 +1,1 @@
-nasmw -ommdr_98.com mmdr_98.asm
+nasm -ommdr_98.com mmdr_98.asm

@@ -1,1 +1,1 @@
-nasmw -f bin -oopndr_98.com opndr_98.asm
+nasm -f bin -oopndr_98.com opndr_98.asm

@@ -1,1 +1,1 @@
-nasmw -f bin -omirai_98.com mirai_98.asm
+nasm -f bin -omirai_98.com mirai_98.asm
