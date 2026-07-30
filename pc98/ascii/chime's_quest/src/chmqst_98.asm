@@ -1,6 +1,7 @@
 ; Chime's Quest RPG.EXE(CRC32:0xc459b6d1)演奏
 ; (C) RuRuRu
 ; 2018/08/26 1st Release
+; 2026/07/30 Fix relocation
 ;
 ; hoot 2018/12版以降で動作
 ;
@@ -36,7 +37,8 @@ start:
 		mov	ah,0x48			; [DOS] ロードバッファの割り当て
 		mov	bx,0x2000		; パラグラフサイズ
 		int	0x21
-		mov	[ovrparam],ax		; entry更新
+		mov	[ovrparam],ax		; ロードセグメント
+		mov	[ovrparam+2],ax		; リロケーション係数
 		mov	[bufseg],ax
 		add	ax, 0x4be		; @FIXME code segment offset
 		mov	[allocseg],ax
@@ -169,4 +171,3 @@ stack:
 
 prgend:
 		ends
-
