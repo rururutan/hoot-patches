@@ -1,6 +1,7 @@
 ; Private Slave MPSL.EXE(CRC32:0x8d014678)
 ; (C) RuRuRu
 ; 2022/03/26 1st Release
+; 2026/08/02 Fix overay parameter
 ;
 
 %include 'hoot.inc'
@@ -39,6 +40,7 @@ start:
 		mov	bx,0x2000		; パラグラフサイズ
 		int	0x21
 		mov	[ovrparam],ax		; entry更新
+		mov	[ovrparam+2],ax		; リロケーション係数
 		mov	[ovrseg],ax
 
 		add	ax, 0x4965		; @FIXME driver segment offset

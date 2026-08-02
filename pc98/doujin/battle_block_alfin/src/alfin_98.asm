@@ -34,6 +34,7 @@ start:
 		mov	bx,0x8000		; パラグラフサイズ
 		int	0x21
 		mov	[ovrparam],ax		; entry更新
+		mov	[ovrparam+2],ax		; リロケーション係数
 		add	ax, 0x40
 		mov	[ovrseg],ax
 		mov	[initseg],ax
