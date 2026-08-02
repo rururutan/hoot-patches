@@ -1,4 +1,4 @@
-; SYNUPS DOS/V player for hoot
+; SYNUPS DOS/V player for hoot (version 2026/12/31 later)
 ; (C) RuRuRu
 ; 2026/08/02 1st Release
 ;
