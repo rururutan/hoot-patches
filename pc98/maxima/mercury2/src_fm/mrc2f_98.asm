@@ -3,6 +3,7 @@
 ;
 ; @autor RuRuRu
 ; @date 2025/11/28 1st Release
+; @date 2026/08/21 Fix relocation
 ;
 
 %include 'hoot.inc'
@@ -36,6 +37,7 @@ start:
 		mov	bx,0x3000		; パラグラフサイズ
 		int	0x21
 		mov	[ovrparam],ax		; entry更新
+		mov	[ovrparam+2],ax		; リロケーション係数
 		add ax, 0x705			; @FIXME FM driver segment offset
 		mov	[initseg],ax
 		mov	[playseg],ax
