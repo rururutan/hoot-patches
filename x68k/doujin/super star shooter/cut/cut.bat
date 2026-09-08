@@ -1,0 +1,3 @@
+set DiskA=SSS_1.2HD
+
+bcut %DiskA% SSS_MAIN.BIN 0x00a400 0x072000
