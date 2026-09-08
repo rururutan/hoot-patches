@@ -1,0 +1,8 @@
+set DiskA=Choujin_A.2HD
+set DiskB=Choujin_B.2HD
+
+bcut %DiskA% CHOJIN_MAIN.BIN 0x000400 0x02c200
+bcut %DiskA% CHOJIN_SYS.BIN 0x02c600 0x01cd2a
+bcut %DiskA% CHOJIN_FM.BIN  0x06ecec 0x00963c
+bcut %DiskA% CHOJIN_TONE.BIN 0x04932a 0x0259c2
+bcut %DiskB% CHOJIN_MIDI.BIN 0x000000 0x0ef400
