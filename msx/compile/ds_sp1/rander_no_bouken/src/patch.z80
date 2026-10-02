@@ -1,0 +1,74 @@
+; ランダーの冒険(Disc Station #SP1) (c)1989 Compile
+;
+; @autor RuRuRu
+; @date 2012/07/07 1st Release
+; @date 2015/10/08 Support MSX-Audio
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a,(04h)
+	cp	01h
+	call	z,05867h
+
+	in	a,(03h)		; Code No.
+	call	0589Ch		; Play
+
+	jr	play_end
+
+stop:
+	di
+	call	05867h
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	in	a, (07h)
+	cp	00
+	jr	z, dev_psg
+	cp	2
+	jr	z, dev_msxa
+	ld	a, 080h			; OPLL
+;	ld	a, 0C0h			; OPLL + No Rhythm
+	jr	init_end
+dev_msxa:
+	ld	a, 0A0h
+	jr	init_end
+dev_psg:
+	xor	a
+init_end:
+	call	0579Ah
+
+	ret
+
+irq:
+	call	04AEAh
+	ret

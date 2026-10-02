@@ -1,0 +1,72 @@
+; 平安妖怪伝(Disc Station #SP1) (c)1989 Compile
+;
+; @autor RuRuRu
+; @date 2015/10/08 1st Release
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a,(04h)
+	cp	01h
+	call	z,05A7Bh
+
+	in	a,(03h)		; Code No.
+	call	05B35h		; Play
+
+	jr	play_end
+
+stop:
+	di
+	call	05A7Bh
+	ei
+
+play_end:
+	xor	a		; Chage hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, irq
+	ld	(0FDA0h), hl
+
+	in	a, (07h)
+	cp	00
+	jr	z, dev_psg
+	cp	2
+	jr	z, dev_msxa
+	ld	a, 080h			; OPLL
+	jr	init_end
+dev_msxa:
+	ld	a, 0A0h
+	jr	init_end
+dev_psg:
+	xor	a
+init_end:
+	call	059AEh
+
+	ret
+
+irq:
+	call	04CFEh
+	ret
