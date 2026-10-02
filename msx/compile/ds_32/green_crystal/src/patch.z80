@@ -1,0 +1,123 @@
+; Green Crystal (c)Compile 用
+; メインルーチン
+
+	cseg
+	org	0f000h
+
+stack:	equ	0f480h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+
+	in	a, (03h)	; Code No.
+	cp	0ah
+	jr	nc,play_start
+
+	push	af
+
+	call	0124h		; Stop
+
+	in	a,(04h)
+	out	(03h),a		; Load
+
+	ld	hl, 02000h
+	ld	a, 03h		; Set data
+	call	012Ah
+
+	pop	af
+
+play_start:
+	call	012Dh		; Play
+
+	jr	play_end
+
+stop:
+	call	0124h		; Stop
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h), a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0038h), a
+	ld	(001Ch), a
+
+	ld	hl, timer
+	ld	(0039h), hl
+
+	ld	hl, calslt
+	ld	(001Dh), hl
+
+; Init
+	in	a, (07h)
+	cp	0
+	jr	z, init_end
+	cp	2
+	jr	z, dev_msxa
+	ld	a, 080h			; opll
+	jr	init_end
+dev_msxa:
+	ld	a, 0A0h
+init_end:
+	call	012Ah
+
+	ld	a, 00h
+	out	(03h), a
+
+	ld	hl, 02000h
+	ld	a, 03h		; Set data
+	call	012Ah
+
+	ret
+
+calslt:
+	ret
+;	jp	(ix)
+
+timer:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	00121H
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret

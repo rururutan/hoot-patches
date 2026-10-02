@@ -1,0 +1,12 @@
+md mus
+cd mus
+
+bcut ..\DSSP52.DSK DRIVER.BIN 0x1c00 0x07f00
+
+rem 6300 6243
+bcut ..\DSSP52.DSK MUS1.BIN 0x42243 0x02000
+
+rem 2100 2102
+bcut ..\DSSP52.DSK MUS2.BIN 0x25134 0x02000
+
+cd ..
