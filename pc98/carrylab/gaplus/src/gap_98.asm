@@ -20,19 +20,23 @@ start:
         mov es, ax
         mov ss, ax
         mov sp, 7000h
+
         mov word [7fh*4], command
         mov word [7fh*4+2], 0
         mov word [8*4], timer
         mov word [8*4+2], 0
-        mov word [904ch], 2000h
+        mov word [904ch], 2000h		; Data segment
         mov di, 904fh
         mov al, 0ffh
         mov cx, 6
         rep stosb
+
         call 90b4h
+
         mov ax, 77h
         mov es, ax
         call 90b4h
+
         xor ax, ax
         mov es, ax
 
@@ -51,6 +55,7 @@ start:
         in al, 2
         and al, 0feh
         out 2, al
+
         mov dx, HOOTFUNC
         mov al, 81h
         out dx, al
