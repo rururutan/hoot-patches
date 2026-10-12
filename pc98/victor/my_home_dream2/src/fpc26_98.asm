@@ -1,153 +1,164 @@
-; FPC26.COM 用
-; メインルーチン (for NASM)
-; UME-3氏作iwaplayのソースを改変させてもらいました。
+; FPC26.COM : Classic Road 4 / My Home Dream 2(PC-9801) player for hoot pc98dos
+; (C) RuRuRu
+; 08/10/03 1st Release
+; 26/10/04 Fix initialize
 
 %include 'hoot.inc'
 
-		ORG	0x0100
-		USE16
-		CPU	186
+USE16
+CPU     186
 
-start:		cli
-		mov	ax,cs
-		mov	ds,ax
-		mov	es,ax
-		mov	sp,stack
+VOICE_HANDLE    equ 0x05
+BUFFER_SIZE     equ 0x8000
 
-		mov	ah,0x08
-		int	0xeb
+        ORG     0x0100
 
-		mov	bx,0x05		; 初期音色データ登録
-		call	voiceset
+start:
+        cli
+        mov     ax,cs
+        mov     ds,ax
+        mov     es,ax
+        mov     ss,ax
+        mov     sp,stack_top
+        sti
 
-		mov	ax,0x257f	; hootドライバ登録
-		mov	dx,vect_7f
-		int	0x21
+        ; The game calls API 08h once while initializing its sound layer.
+        mov     ah,0x08
+        int     0xeb
 
-		sti
-mainloop:	hlt
-		hlt
-		hlt
-		hlt
-		hlt
-		jmp	short mainloop
+        ; SOUND26.DAT is file handle 5 in the XML. API 09h copies it into
+        ; FPC26-owned storage, so the load buffer can later hold song data.
+        mov     bx,VOICE_HANDLE
+        mov     ah,0x3f
+        mov     cx,BUFFER_SIZE
+        mov     dx,load_buffer
+        int     0x21
+        jc      fatal
+        or      ax,ax
+        jz      fatal
 
-; hootからコールされる
-; inp8(HOOTPORT) = 0 → PC98DOS::Play
-; inp8(HOOTPORT) = 2 → PC98DOS::Stop
-; _code = inp8(HOOTPORT+2)～inp8(HOOTPORT+5)
+        mov     cx,cs
+        mov     dx,load_buffer
+        mov     ah,0x09
+        int     0xeb
 
-vect_7f:	pusha
-		push	ds
-		push	es
-		mov	ax,cs
-		mov	ds,ax
-		mov	es,ax
-		mov	dx,HOOTPORT
-		in	al,dx
-		cmp	al,HP_PLAY
-		jz	short .play
-		cmp	al,HP_STOP
-		jz	short .fadeout
-.ed:		pop	es
-		pop	ds
-		popa
-		iret
+        mov     ax,0x257f
+        mov     dx,vect_7f
+        int     0x21
+
+mainloop:
+        hlt
+        jmp     short mainloop
+
+; hoot command interrupt:
+;   HOOTPORT   = 0: play, 2: stop
+;   HOOTPORT+5 = 0: BGM, nonzero: SSG sound effect
+vect_7f:
+        pusha
+        push    ds
+        push    es
+        push    cs
+        pop     ds
+        push    cs
+        pop     es
+
+        sti
+
+        mov     dx,HOOTPORT
+        in      al,dx
+        cmp     al,HP_PLAY
+        je      short .play
+        cmp     al,HP_STOP
+        je      short .stop
+        jmp     short .done
 
 .play:
-		call	stop_music	; 演奏停止
-		mov	ah,0x3f		; [DOS] read hundle
-		mov	dx,HOOTPORT+4	; 音色データ番号指定を読み込む
-		in	al,dx
-		or	al,al
-		jz	.musload	; 指定されていなければ音色ロードをスキップ
+        call    stop_current
 
-.voiceload:	push	ax
-		mov	ax,0x0aff	; 既存の音色データを全て削除
-		int	0xeb
-		pop	ax
-		mov	bl,al		; hundle指定とする
-		xor	bh,bh
-		mov	dx,buff
-		mov	cx,0x8000	; 音色データ最大サイズ(適当)
-		int	0x21		; 音色データロード
-		jc	.stop
-		call	rewind		; ファイルポインタを戻す
-		jc	.stop
-		mov	cx,cs
-		mov	dx,buff		; 音色データ連続登録(CX:DX)
-		mov	ah,0x09
-		int	0xeb
+        mov     ah,0x3f
+        xor     bx,bx
+        mov     cx,BUFFER_SIZE
+        mov     dx,load_buffer
+        int     0x21
+        jc      short .done
+        or      ax,ax
+        jz      short .done
 
-.musload:
-		mov	ax,0x06ff	; 登録済み曲データを全て削除
-		int	0xeb
-		mov	ah,0x3f		; [DOS] read hundle
-		xor	bx,bx		; 標準入力
-		mov	cx,0x8000	; 曲データ最大サイズ(適当)
-		mov	dx,buff
-		int	0x21		; 曲データロード
-		jc	.stop
+        ; The game saves byte +2 before calling the registration API.
+        mov     al,[load_buffer+2]
+        mov     [song_id],al
 
-		mov	cx,cs
-		mov	dx,buff
-		mov	ah,0x01		; 曲データ登録(CX:DX)
-		int	0xeb
+        ; Delete only the song registered by the preceding play. Deleting
+        ; every type-1 entry with AL=ffh disturbs FPC26's registration table
+        ; after switching to a different song ID.
+.clear_retry:
+        mov     al,[registered_id]
+        cmp     al,0xff
+        je      short .register
+        mov     ah,0x06
+        int     0xeb
+        jnc     short .cleared
+        cmp     al,0x01
+        je      short .clear_retry
+        jmp     short .done
+.cleared:
+        mov     byte [registered_id],0xff
 
-		mov	dx,HOOTPORT+5	; BGM/SE種別を読み込む
-		in	al,dx
-		or	al,0x7f		; ミュートボリュームを合成
-		mov	dl,al
-		mov	al,[buff+2]	; 曲ID
-		mov	ah,0x02		; 演奏開始
-		int	0xeb
-		jnc	short .ed
+.register:
+        mov     cx,cs
+        mov     dx,load_buffer
+        mov     ah,0x01
+        int     0xeb
+        mov     al,[song_id]
+        mov     [registered_id],al
 
-.stop:		call	stop_music	; 異常時は演奏停止して戻る
-		jmp	short .ed
+        mov     dx,HOOTPORT+5
+        in      al,dx
+        mov     [play_mode],al
+        mov     dl,0x7f
+        or      al,al
+        jz      short .start_play
+        mov     dl,0x80
+.start_play:
+        mov     al,[song_id]
+        mov     ah,0x02
+        int     0xeb
+        jmp     short .done
 
-.fadeout:
-		mov	ax,0308h	; フェードアウト(AL=速度)
-		int	0xeb
-		jmp	short .ed
+.stop:
+        call    stop_current
+.done:
+        pop     es
+        pop     ds
+        popa
+        iret
 
-stop_music:
-		mov	ax,0x03ff	; 演奏停止(その1)
-		int	0xeb
-		mov	ax,0x0301	; 演奏停止(その2)
-		int	0xeb
-		mov	ah,0x08
-		int	0xeb
-		ret
+stop_current:
+        mov     al,[play_mode]
+        cmp     al,0xff
+        je      short .done
+        or      al,al
+        mov     ax,0x0300
+        jz      short .call
+        mov     ax,0x03ff
+.call:
+        int     0xeb
+        mov     byte [play_mode],0xff
+.done:
+        ret
 
-; 音色設定 BX=ファイルハンドル
-voiceset:	mov	ah,0x3f		; [DOS] read hundle
-		mov	cx,0x8000	; 音色データ最大サイズ(適当)
-		mov	dx,buff
-		int	0x21		; 音色データロード
-		jc	return		; エラーなら無視する
-		push	bx
-		mov	cx,cs
-		mov	dx,buff
-		mov	ah,0x09		; 音色データセット(CX:DX)
-		int	0xeb
-		pop	bx
+fatal:
+        mov     ax,0x4c01
+        int     0x21
 
-rewind:		push	ax		; ファイルポインタ(BX)を先頭に戻す
-		push	cx
-		push	dx
-		mov	ax,0x4200	; [DOS] move file pointer
-		xor	cx,cx
-		mov	dx,cx
-		int	0x21
-		pop	dx
-		pop	cx
-		pop	ax
-return:		ret
+song_id:
+        db      0
+play_mode:
+        db      0xff
+registered_id:
+        db      0xff
 
-		times 0x100 db 0x00	; スタックエリア
-stack:
-		align	0x10
-buff:					; 以下、ロードバッファ
-		ends
-
+        times 0x100 db 0
+stack_top:
+        align   0x10
+load_buffer:
