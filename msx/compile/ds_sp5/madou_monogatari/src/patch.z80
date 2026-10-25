@@ -1,0 +1,117 @@
+; 魔導物語(Disc Station #SP5) (c)1989 Compile
+;
+; @autor RuRuRu
+; @date 2011/10/23 1st Release
+
+	cseg
+	org	06000h
+
+stack:	equ	0f300h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a,(04h)
+	cp	01
+	call	z, 00124h	; Stop
+
+	in	a,(03h)		; Code No.
+
+	di
+	call	0012Dh		; Play
+	ei
+
+	jr	play_end
+
+stop:
+	di
+	call	00124h		; Stop
+	ei
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0038h), a
+	ld	(001Ch), a
+
+	ld	hl, irq
+	ld	(0039h), hl
+
+	ld	hl, calslt
+	ld	(001Dh), hl
+
+; Init
+	in	a, (07h)
+	cp	01h
+	jr	z, dev_opll
+	cp	02h
+	jr	z, dev_audio
+	xor	a
+	jr	dev_init
+
+dev_opll:
+	ld	a, 080h
+	jr	dev_init
+
+dev_audio:
+	ld	a, 0a0h
+
+dev_init:
+	call	0012Ah		; Stop
+
+	ld	a, 03h		; データアドレス登録
+	ld	hl, 06243h
+;	ld	hl, 02102h	; ダンジョン用(上のデータで全曲入ってるので不要)
+	call	0012Ah
+
+	ret
+
+calslt:
+	ret
+
+irq:
+	push	hl
+	push	de
+	push	bc
+	push	af
+	exx
+	ex	af,af'
+	push	hl
+	push	de
+	push	bc
+	push	af
+	push	iy
+	push	ix
+	call	00121h
+	pop	ix
+	pop	iy
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ex	af,af'
+	exx
+	pop	af
+	pop	bc
+	pop	de
+	pop	hl
+	ei
+	ret

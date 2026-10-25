@@ -1,0 +1,93 @@
+; BB DS#13 (c)Compile 用
+; メインルーチン
+
+	cseg
+	org	00400h
+
+stack:	equ	0f300h		; スタックエリア
+
+; メインループ
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; キー入力待ち
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	call	025B7h	; Stop
+
+	in	a, (04h)
+	add	a,a
+	ld	d, 00
+	ld	e, a
+	ld	hl, mustbl
+	add	hl, de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	push	de
+	pop	hl
+	ld	a, 03h		; Set data ptr
+	call	024ADh
+
+	in	a, (03h)	; Code No.
+
+	di
+	call	025F3h		; Play
+	ei
+
+	jr	play_end
+
+stop:
+	di
+	call	025B7h		; Stop
+	ei
+
+play_end:
+	xor	a		; hoot status変更
+	out	(02h),a
+	jr	loop
+
+init:
+; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 16C6h
+	ld	(0FDA0h), hl
+
+; Init
+	in	a, (07h)
+	cp	00
+	jr	z, dev_psg
+	cp	02
+	jr	z, dev_msxa
+	ld	a, 080h
+	jr	init_end
+dev_msxa:
+	ld	a, 0A0h
+	jr	init_end
+dev_psg:
+	xor	a
+init_end:
+	call	024ADh
+
+	ret
+
+mustbl:
+	dw	09A98h
+	dw	0A2A6h
+	dw	0A948h
+	dw	048F5h
+	dw	06052h
+	dw	08674h
+	dw	070A3h

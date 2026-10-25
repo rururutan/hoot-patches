@@ -1,0 +1,6 @@
+md mus
+cd mus
+bcut ..\DS#00.DSK DRIVER.BIN 0x010000 0x2A80
+bcut ..\DS#00.DSK DATA1.BIN 0x01C43B 0x860
+bcut ..\DS#00.DSK DATA2.BIN 0x01F228 0x3D8
+cd ..

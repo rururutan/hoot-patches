@@ -1,4 +1,5 @@
-; 黄金の羅針盤 (C)Riverhill-soft
+; 黄金の羅針盤 / Princess Minerva (C)Riverhill-soft
+; 2020/02/11 1st Release : rashinドライバからPC98VXドライバに移植
 
 %include 'hoot.inc'
 

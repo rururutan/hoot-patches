@@ -2,6 +2,7 @@
 ;
 ; @autor RuRuRu
 ; @date 2019/01/30 1st Release
+; @date 2026/09/26 Fix overay parameter
 ;
 
 %include 'hoot.inc'
@@ -36,6 +37,7 @@ start:
 		mov	bx,0x2000		; パラグラフサイズ
 		int	0x21
 		mov	[ovrparam],ax		; entry更新
+		mov	[ovrparam+2],ax		; entry更新
 		mov	[initseg],ax
 		mov	[playseg],ax
 		mov	[loadseg],ax

@@ -1,0 +1,84 @@
+; サムライキング メガズオンZ(Disc Station #SP3) (c)1989 Compile
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)		; Key wait
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jr	nz,stop
+
+; play
+	in	a,(03h)		; Code No.
+	push	af
+
+	in	a,(04h)
+	cp	(loaded)
+	call	nz,load_drv
+
+	pop	af
+	call	0575Ch		; Play
+
+	jr	play_end
+
+stop:
+	call	05749h
+
+play_end:
+	xor	a		; Change hoot status
+	out	(02h),a
+	jr	loop
+
+init:
+	ld	a, 0c9h
+	ld	(048D8h), a
+	ld	(05749h), a
+
+	; Regist entry
+	ld	a, 0c3h
+	ld	(0FD9Fh), a
+	ld	hl, 048D8h
+	ld	(0FDA0h), hl
+	ret
+
+load_drv:
+	di
+	out	(03h),a
+
+	ld	hl,09800h
+	ld	de,04000h
+	ld	bc,03E00h
+	ldir
+
+	ei
+
+	in	a, (07h)
+	cp	00
+	jr	z, dev_psg
+	cp	02
+	jr	z, dev_msxa
+	ld	a, 080h
+	jr	init_end
+dev_msxa:
+	ld	a, 0a0h
+	jr	init_end
+dev_psg:
+	xor	a
+init_end:
+	call	05657h		; Init
+	ret
+
+loaded:
+	db	0FFh

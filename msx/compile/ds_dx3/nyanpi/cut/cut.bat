@@ -1,0 +1,7 @@
+md mus
+cd mus
+
+bcut ..\DSDX31.DSK DRIVER.BIN 0xB0000 0x03800
+bcut ..\DSDX31.DSK DATA.BIN 0x52C7A 0x02000
+
+cd ..
