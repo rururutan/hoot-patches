@@ -2,6 +2,7 @@
 ; (C) RuRuRu
 ; 2013/10/20 1st Release
 ; 2025/08/01 Fix tempo
+; 2026/10/22 Use the original 10 ms BIOS interval timer
 ;
 %include 'hoot.inc'
 int_hoot	equ	0x7f
@@ -44,15 +45,10 @@ start:
 
 		call	drv_load
 
-		mov	ah, 0x25
-		mov	al, 0x0a
-		mov	dx, vsync_ent
-		int	0x21
-
-		in	al, 0x02
-		and	al, 0xfb
-		out	0x02, al
-		out	0x64, al
+		; Original DS.EXE:DCCC / DDB8: 10 ms BIOS timer.
+		mov	ax, cs
+		mov	es, ax
+		call	set_timer
 
 		mov	ah, 0x25		; hootドライバ登録
 		mov	al, int_hoot
@@ -176,26 +172,28 @@ drv_load:
 
 		ret
 
-vsync_ent:
-		out	0x64, al
-		push	ax
-		mov	al, 0x20
-		out	0x00, al
-		pop	ax
-		call	far [cs:irqent]
-		mov	al, [irq_cnt]
-		inc	al
-		mov	[irq_cnt],al
-		cmp	al,2
-		jz	ent_end
-		mov	al, 0
-		mov	[irq_cnt],al
-		call	far [cs:irqent]
-ent_end:
-		iret
+set_timer:
+		mov	bx, timer_ent
+		mov	cx, 1
+		mov	ah, 0x02
+		int	0x1c
+		ret
 
-irq_cnt:
-	db	00
+timer_ent:
+		push	ax
+		push	bx
+		push	cx
+		push	es
+		call	far [cs:irqent]
+		; One-shot BIOS timer: re-arm as in DS.EXE:DDB8.
+		mov	ax, cs
+		mov	es, ax
+		call	set_timer
+		pop	es
+		pop	cx
+		pop	bx
+		pop	ax
+		iret
 
 exec_path:
 	db	'SOUND.EXE',00
