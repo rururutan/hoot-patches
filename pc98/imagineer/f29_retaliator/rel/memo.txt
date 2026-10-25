@@ -1,0 +1,4 @@
+extract_f29.exe RTDEMO.EXE output/
+でF29_DAT.BINを出力。
+
+
