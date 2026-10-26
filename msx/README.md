@@ -1,10 +1,11 @@
 # MSX汎用ドライバ仕様
 
-デフォルトの音量バランスはSONY HB-F1XDJ基準
+デフォルトの音量バランスはSONY HB-F1XDJを基準としてます。
+Panasonic系になれている人はPSGの音量が小さく感じるかもしれません。
 
 ## 独自IOポート
 
-* Port 02 R/リクエスト(00:none 01:stop 02:play)
+* Port 02 R/リクエスト(00:none 01:play 02:stop)
 * Port 03 R/リクエストコード(00~07bit) W/ファイル1ロード
 * Port 04 R/リクエストコード(08~15bit) W/ファイル2ロード
 * Port 05 R/リクエストコード(16~23bit)
