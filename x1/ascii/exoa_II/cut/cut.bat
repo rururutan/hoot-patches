@@ -1,0 +1,2 @@
+MD MUS
+d88cut.exe exoa-ii.d88 MUS.BIN 0 0xD965 0x023F 0 0x023F
