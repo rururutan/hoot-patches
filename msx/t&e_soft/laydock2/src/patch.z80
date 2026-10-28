@@ -4,12 +4,13 @@
 ; @date 2010/08/24 1st Release
 ; @date 2011/10/13 Support PCM
 ; @date 2016/08/06 Fix YM2413 initialize
+; @date 2026/10/27 Support All PCMs
 
 	cseg
 	org	00400h
 
-stack:	equ	0f380h		; スタックエリア
-mdata:	equ	0b800h		; 曲データアドレス
+stack:	equ	0f380h
+mdata:	equ	0b800h		; Address of load music data
 
 main:
 	di
@@ -30,8 +31,10 @@ loop:
 	call	0C006h		; stop
 
 	in	a,(03h)
+	cp	011h
+	jr	nc,play_end
 	cp	0ch
-	jr	z, play_pcm
+	jr	nc,play_pcm
 
 	push	af
 	in	a, (07h)
@@ -40,7 +43,7 @@ loop:
 	pop	af
 
 	di
-	out	(03h),a		; 曲データを読み込む
+	out	(03h),a		; Load data to memory
 	ei
 
 	ld	a, 04h
@@ -49,7 +52,30 @@ loop:
 	jr	loop
 
 play_pcm:
-	call	0A825h
+	sub	0ch
+	ld	e,a
+	ld	d,0
+	ld	hl,pcm_end
+	add	hl,de
+	ld	c,(hl)
+	ld	hl,pcm_wait
+	add	hl,de
+	ld	b,(hl)
+	di
+	out	(04h),a
+	ld	a,c
+	ld	(0A8DEh),a	; Set end-page
+	ld	a,b
+	ld	(0A8EAh),a	; Change PSG sample wait
+
+	call	0A825h		; PCM play
+
+	di
+	ld	a,8
+	out	(0A0h),a
+	xor	a
+	out	(0A1h),a
+	ei
 	jr	play_end
 
 
@@ -86,3 +112,9 @@ devpsg:
 irq:
 	call	0C00Fh
 	ret
+
+pcm_end:
+	db	070h,05fh,06ch,076h,04ah
+
+pcm_wait:	; Original Wait : 08h
+	db	00ah,00ah,00ah,00ah,00ah
