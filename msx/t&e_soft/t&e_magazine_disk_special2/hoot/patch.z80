@@ -1,0 +1,117 @@
+; T&E Magazin Disk Spacial No.2 (c)T&Esoft
+;
+; @author RuRuRu
+; @date 2026/10/28 1st Release
+
+	cseg
+	org	0400h
+
+main:	di
+	im	1
+	ld	sp,0f380h
+	ld	a,0c3h
+	ld	(0fd9fh),a
+	ld	hl,irq
+	ld	(0fda0h),hl
+
+	in	a,(07h)		; Chip flag
+	or	a
+	jr	z,save_psg
+
+	ld	hl,0c9afh
+	ld	(0c364h),hl
+	jr	init_psg
+save_psg:
+	ld	hl,0c000h
+	ld	de,08000h
+	ld	bc,00d39h
+	ldir
+init_psg:
+	call	0c003h
+	call	stop_driver
+	ei
+loop:	in	a,(02h)
+	or	a
+	jr	z,loop
+
+	cp	1
+	jp	nz,stop
+
+	call	stop_driver
+	in	a,(03h)
+	cp	0eh
+	jp	nc,ack
+
+	ld	b,a
+	in	a,(07h)
+	or	a
+	jr	z,select_psg
+
+	ld	a,b
+	cp	7
+	jp	z,ack
+	cp	0dh
+	jp	z,ack
+	jr	new_driver
+
+select_psg:
+	ld	e,b
+	ld	d,0
+	ld	hl,driver_table
+	add	hl,de
+	ld	a,(hl)
+	or	a
+	jr	z,new_driver
+
+	ld	a,b
+	di
+	out	(03h),a
+
+	ld	hl,06000h
+	ld	de,0c000h
+	ld	bc,01ba3h
+	ldir
+	ld	hl,0c060h
+	ld	de,0c000h
+	ld	bc,0018h
+	ldir
+	call	0c009h
+	jr	play_song
+new_driver:
+	ld	a,b
+	di
+	out	(03h),a
+	in	a,(07h)
+	or	a
+	jr	nz,init_new
+	ld	hl,08000h
+	ld	de,0c000h
+	ld	bc,00d39h
+	ldir
+init_new:
+	call	0c003h
+play_song:
+	ld	hl,0b000h
+	xor	a
+	ld	b,a
+	call	0c006h
+	jp	ack
+stop:
+	call	stop_driver
+
+ack:
+	ei
+	xor	a
+	out	(02h),a
+	jp	loop
+
+; Only these two operands change when the PSG driver family changes.
+stop_driver:
+	jp	0c009h
+
+irq:
+	call	0c000h
+	ret
+
+driver_table:
+	db	1,1,1,0,0,0,0,1,1,1,1,0,0,0

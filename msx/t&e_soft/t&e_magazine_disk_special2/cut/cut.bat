@@ -1,0 +1,22 @@
+@echo off
+if not exist mus mkdir mus
+cd mus
+
+bcut "..\TESOFDS1.dsk" 01.MDT 0x70000 0x0400
+bcut "..\TESOFDS1.dsk" 02.MDT 0x70400 0x0600
+bcut "..\TESOFDS1.dsk" 03.MDT 0x70a00 0x0200
+bcut "..\TESOFDS1.dsk" 04.MDT 0x70c00 0x0600
+bcut "..\TESOFDS1.dsk" 05.MDT 0x71200 0x0400
+bcut "..\TESOFDS1.dsk" 06.MDT 0x71600 0x0a00
+bcut "..\TESOFDS1.dsk" 07.MDT 0x72000 0x0200
+bcut "..\TESOFDS1.dsk" 08.MDT 0x72200 0x0800
+
+bcut "..\TESOFDS1.dsk" 09.MDT 0x91c00 0x0100
+bcut "..\TESOFDS1.dsk" 09P.MDT 0x93c00 0x0400
+bcut "..\TESOFDS1.dsk" UNDEAD_PSGDRV.BIN 0x97c00 0x1800
+
+bcut "..\GD2DS.COM" GD_FTITLE.MDT 0x2720 0x0a00
+bcut "..\GD2DS.COM" GD_FRACE.MDT 0x1e39 0x0400
+bcut "..\GD2DS.COM" GD_PTITLE.MDT 0x3120 0x0a00
+bcut "..\GD2DS.COM" GD_PRACE.MDT 0x2239 0x04e7
+
