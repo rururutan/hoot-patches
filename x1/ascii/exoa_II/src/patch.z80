@@ -1,0 +1,165 @@
+; EXOA II WARROID  for X1 (c)ASCII
+
+; メインルーチン
+
+	org	0f000h
+
+	di
+	ld	sp,0eff0h
+	call	silence
+	ld	a,0f2h
+	ld	i,a
+	im	2
+	ld	bc,01fa0h
+	xor	a
+	out	(c),a
+	ld	a,07h
+	out	(c),a
+	ld	a,059h
+	out	(c),a
+	ld	bc,01fa3h
+	ld	a,0c7h
+	out	(c),a
+	ld	a,045h
+	out	(c),a
+	ei
+loop:
+	ld	bc,0
+	in	a,(c)
+	or	a
+	jp	z,loop
+	di
+	cp	001h
+	jp	z,play
+	call	silence
+	jp	skip
+play:
+	ld	bc,001h
+	in	a,(c)
+	push	af
+	call	silence
+	pop	af
+	cp	005h
+	jp	nc,skip
+	inc	a
+	ld	(status),a
+	xor	a
+	ld	(phase),a
+	ld	(0c855h),a
+	ld	(0c857h),a
+	ld	(0c859h),a
+	call	short_timer
+	ld	a,(status)
+	cp	002h
+	jp	z,shot
+	cp	003h
+	jp	z,hit
+	cp	005h
+	jp	z,explosion
+	jp	skip
+shot:
+	ld	de,0b98fh
+	call	0b965h
+	ld	a,16
+	ld	(0c857h),a
+	jp	skip
+hit:
+	ld	de,0b9a6h
+	call	0b965h
+	ld	a,8
+	ld	(0c859h),a
+	jp	skip
+explosion:
+	ld	de,0b9d4h
+	call	0b965h
+	xor	a
+	ld	(status),a
+skip:
+	ld	bc,1
+	ld	a,0ffh
+	out	(c),a
+	ei
+	jp	loop
+silence:
+	xor	a
+	ld	(status),a
+	ld	de,0b97ah
+	call	0b965h
+	ret
+short_timer:
+	ld	bc,01fa3h
+	ld	a,0c7h
+	out	(c),a
+	ld	a,45
+	out	(c),a
+	ret
+irq:
+	push	af
+	push	bc
+	push	de
+	push	hl
+	ld	a,(phase)
+	xor	1
+	ld	(phase),a
+	or	a
+	jp	z,short_phase
+	ld	bc,01fa3h
+	ld	a,0c7h
+	out	(c),a
+	ld	a,213
+	out	(c),a
+	jp	time
+short_phase:
+	call	short_timer
+time:
+	ld	a,(status)
+	or	a
+	jp	z,irqend
+	cp	2
+	jp	z,shot_tick
+	cp	3
+	jp	z,hit_tick
+	ld	a,(phase)
+	or	a
+	jp	z,irqend
+	ld	a,(status)
+	cp	1
+	jp	z,music_tick
+	cp	4
+	jp	z,move_tick
+	jp	irqend
+music_tick:
+	call	0b9f0h
+	jp	irqend
+shot_tick:
+	call	0bb53h
+	jp	irqend
+hit_tick:
+	call	0bb83h
+	jp	irqend
+move_tick:
+	ld	a,(0c855h)
+	xor	1
+	ld	(0c855h),a
+	ld	de,0b9c3h
+	or	a
+	jp	z,move_write
+	ld	de,0b9cah
+move_write:
+	call	0b965h
+irqend:
+	pop	hl
+	pop	de
+	pop	bc
+	pop	af
+	ei
+	reti
+
+status:
+db	0
+
+phase:
+db	0
+org	0f200h
+dw	0,0,0,irq
+
