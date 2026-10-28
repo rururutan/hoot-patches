@@ -1,0 +1,104 @@
+; MSX2 Gandhara (c)Enix
+;
+; @autor RuRuRu
+; @date 2026/10/29 1st Release
+;
+
+	cseg
+	org	00400h
+
+stack:	equ	0f380h
+
+main:
+	di
+	im	1
+	ld	sp,stack
+	call	init
+	ei
+
+loop:
+	in	a,(02h)
+	or	a
+	jr	z,loop
+
+	cp	01h
+	jp	nz,stop
+
+	call	0973ch
+	xor	a
+	ld	(0900eh),a
+	in	a,(03h)
+	cp	01bh
+	jp	nc,play_end
+
+	out	(03h),a
+
+	di
+	ld	hl,00600h
+	ld	de,09300h
+	ld	bc,0004ch
+	ldir
+	ld	de,(04000h)
+	ld	bc,(04002h)
+	ld	hl,0400ah
+	ldir
+	ld	a,0c3h
+	ld	(0fd9fh),a
+	ld	hl,(04004h)
+	ld	de,(04006h)
+	ld	bc,(04008h)
+	ld	a,d
+	or	e
+	jr	z,one_channel
+
+	ld	a,b
+	or	c
+	jr	z,two_channels
+
+	call	0966ah
+	jr	play_end
+
+two_channels:
+	call	0967ah
+	jr	play_end
+
+one_channel:
+	ld	(09300h),hl
+	ld	hl,1
+	ld	(09302h),hl
+	ld	a,1
+	ld	(0900eh),a
+	jr	play_end
+
+stop:
+	call	0973ch
+	xor	a
+	ld	(0900eh),a
+
+play_end:
+	ei
+	xor	a
+	out	(02h),a
+	jp	loop
+
+init:
+	ld	a,0c3h
+	ld	(0fd9fh),a
+	ld	hl,09000h
+	ld	(0fda0h),hl
+	ld	a,098h
+	ld	(09babh),a
+
+	ld	hl,02323h
+	ld	(09448h),hl
+	ld	a,0c3h
+	ld	(0944ah),a
+	ld	hl,094dah
+	ld	(0944bh),hl
+	ld	hl,09300h
+	ld	de,00600h
+	ld	bc,0004ch
+	ldir
+	ei
+	call	09b72h
+	ret
