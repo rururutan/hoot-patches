@@ -1,0 +1,103 @@
+; 覇邪の封印 for X1turbo (c)工画堂スタジオ
+; メインルーチン
+
+	org	0f000h
+	di
+	ld	sp,0fd00h
+
+	call	stop
+
+	ld	hl,irq
+	ld	(0fe06h),hl
+	ld	a,0feh
+	ld	i,a
+	im	2
+	ld	bc,01fa0h
+	xor	a
+	out	(c),a
+	ld	a,007h
+	out	(c),a
+	ld	a,091h
+	out	(c),a
+	ld	bc,01fa3h
+	ld	a,0c7h
+	out	(c),a
+	ld	a,002h
+	out	(c),a
+	ei
+main:
+	ld	bc,00000h
+	in	a,(c)
+	or	a
+	jp	z,main
+	di
+	push	af
+	call	stop
+	pop	af
+	cp	001h
+	jp	nz,skip
+	ld	bc,00001h
+	in	a,(c)
+	or	a
+	jp	nz,skip
+
+	ld	b,009h
+	ld	a,001h
+	call	0045ah
+
+	ld	a,007h
+	ld	e,0f8h
+	call	0056dh
+	ld	b,003h
+	ld	a,008h
+	ld	e,00fh
+volume:
+	call	0056dh
+	dec	e
+	dec	e
+	inc	a
+	djnz	volume
+	ld	a,001h
+	ld	(active),a
+skip:
+	ld	bc,00001h
+	ld	a,0ffh
+	out	(c),a
+	ei
+	jp	main
+stop:
+	xor	a
+	ld	(active),a
+	ld	(0044dh),a
+	ld	e,000h
+	ld	a,008h
+	call	0056dh
+	inc	a
+	call	0056dh
+	inc	a
+	call	0056dh
+	ld	a,007h
+	ld	e,0ffh
+	call	0056dh
+	ret
+irq:
+	push	af
+	push	bc
+	push	de
+	push	hl
+	push	ix
+	ld	a,(active)
+	or	a
+	jr	z,irq_skip
+	call	00488h
+irq_skip:
+	pop	ix
+	pop	hl
+	pop	de
+	pop	bc
+	pop	af
+	ei
+	reti
+active:
+	db	000h
+
