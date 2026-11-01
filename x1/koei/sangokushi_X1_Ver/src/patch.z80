@@ -1,0 +1,119 @@
+; 三國志 for X1turbo (c)Koei
+; メインルーチン
+
+	org	0f000h
+
+	di
+	ld	sp,0fd00h
+	ld	a,001h
+	ld	(0088fh),a
+	call	stop
+
+	ld	hl,irq
+	ld	(0fe06h),hl
+	ld	a,0feh
+	ld	i,a
+	im	2
+	ld	bc,01fa0h
+	xor	a
+	out	(c),a
+	ld	a,007h
+	out	(c),a
+	ld	a,0fah
+	out	(c),a
+	ld	bc,01fa3h
+	ld	a,0c7h
+	out	(c),a
+	ld	a,014h
+	out	(c),a
+	ei
+idle:
+	ld	bc,00000h
+	in	a,(c)
+	or	a
+	jp	z,idle
+music_select:
+	di
+	ld	sp,0fd00h
+	call	stop
+	ld	bc,00000h
+	in	a,(c)
+	cp	001h
+	jp	nz,skip
+	inc	c
+	in	a,(c)
+	cp	007h
+	jp	nc,skip
+	ld	(selected),a
+	ld	a,0ffh
+	out	(c),a
+	ld	a,001h
+	ld	(0201bh),a
+	ld	a,008h
+	ld	(0209eh),a
+	ld	(0209fh),a
+	ld	(020a0h),a
+	ld	a,(selected)
+	add	a,a
+	ld	e,a
+	ld	d,000h
+	ld	hl,music_tbl
+	add	hl,de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	ld	hl,00000h
+	ei
+	call	01f43h
+	call	stop
+	jp	idle
+skip:
+	ld	bc,00001h
+	ld	a,0ffh
+	out	(c),a
+	ei
+	jp	idle
+stop:
+	ld	a,007h
+	ld	e,0ffh
+	call	write_psg
+	ld	a,008h
+	ld	e,000h
+	call	write_psg
+	inc	a
+	call	write_psg
+	inc	a
+	call	write_psg
+	ret
+write_psg:
+	push	af
+	push	bc
+	ld	bc,01c00h
+	out	(c),a
+	dec	b
+	ld	a,e
+	out	(c),a
+	pop	bc
+	pop	af
+	ret
+irq:
+	push	af
+	push	bc
+	ld	bc,00000h
+	in	a,(c)
+	or	a
+	jr	nz,abort_play
+	pop	bc
+	pop	af
+	ei
+	reti
+abort_play:
+	ld	sp,0fd00h
+	ld	hl,music_select
+	push	hl
+	ei
+	reti
+selected:
+	db	000h
+music_tbl:
+	dw	08000h,08400h,08500h,08540h,08580h,085c0h,08600h
