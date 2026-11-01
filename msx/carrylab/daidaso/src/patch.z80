@@ -1,0 +1,119 @@
+; 大脱走 (c)Carry Lab
+;
+; @autor RuRuRu
+; @date 2026/11/01 1st Release
+
+	cseg
+	org	0400h
+
+main:
+	di
+	im	1
+	ld	sp,0f380h
+	call	init
+	ei
+
+loop:
+	in	a,(02h)
+	or	a
+	jr	z,loop
+
+	cp	1
+	jr	nz,stop
+
+	in	a,(03h)
+	cp	22
+	jr	nc,stop
+
+	add	a,a
+	ld	e,a
+	ld	d,0
+	ld	hl,mustbl
+	add	hl,de
+	ld	e,(hl)
+	inc	hl
+	ld	d,(hl)
+	push	de
+	call	reset_work
+	call	08e50h
+	pop	de
+	xor	a
+	out	(02h),a
+	ld	hl,loop
+	push	hl
+	push	de
+	ei
+	ret
+
+stop:
+	call	08e50h
+	xor	a
+	out	(02h),a
+	jp	loop
+
+reset_work:
+	di
+	xor	a
+	ld	hl,0d400h
+	ld	de,0d401h
+	ld	bc,00a3h
+	ld	(hl),a
+	ldir
+	ld	hl,047aah
+	ld	de,0d401h
+	ld	bc,0038h
+	ldir
+	ld	a,1
+	ld	(0d493h),a
+	ld	a,0ffh
+	ld	(0d45dh),a
+	jp	08ec7h
+
+irq:
+	ld	hl,0d4a0h
+	inc	(hl)
+	inc	hl
+	inc	(hl)
+	; BREAKX's flag lets the original blocking wait unwind safely.
+	in	a,(02h)
+	or	a
+	ret	z
+	ld	a,1
+	ld	(0d486h),a
+	ret
+
+init:
+	ld	a,0c3h
+	ld	(0fd9fh),a
+	ld	hl,irq
+	ld	(0fda0h),hl
+	call	reset_work
+	call	08e50h
+	ret
+
+mustbl:
+	dw	08d66h,08d6bh,08d70h,08d75h,08d7ah,08d7fh
+	dw	08d84h,08d89h,08d8eh,08d93h,08d98h,08d9dh
+	dw	08da2h,08da7h,08dach,08db1h,08d4eh,08d53h
+	dw	bgm0,bgm1,bgm2,extra_se
+
+bgm0:
+	call	08d1fh
+	jr	bgm_loop
+
+bgm1:
+	call	08d24h
+	jr	bgm_loop
+
+bgm2:
+	call	08d29h
+bgm_loop:
+	in	a,(02h)
+	or	a
+	ret	nz
+	call	08d33h
+	jr	bgm_loop
+
+extra_se:
+	ld	hl,090feh
+	jp	08db9h
