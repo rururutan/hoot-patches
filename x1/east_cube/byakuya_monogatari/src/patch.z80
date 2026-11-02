@@ -1,0 +1,86 @@
+; 白夜物語 for X1turbo (c)East Cube
+; メインルーチン
+
+	org	0f000h
+
+	di
+	ld	sp,0f900h
+	ld	a,0c9h
+	ld	(055bbh),a
+	ld	hl,00ffch
+	ld	(02021h),hl
+	ld	(hl),001h
+	inc	hl
+	ld	(hl),000h
+	ld	hl,01fa0h
+	ld	(0654ch),hl
+	call	stop
+main:
+	ld	bc,00000h
+	in	a,(c)
+	or	a
+	jp	z,main
+	di
+	push	af
+	call	stop
+	pop	af
+	cp	001h
+	jr	nz,skip
+	ld	bc,00001h
+	in	a,(c)
+	cp	00dh
+	jr	nc,skip
+	out	(c),a
+	call	05a15h
+	ld	hl,0b000h
+	call	0577ch
+	di
+	ld	hl,irq
+	ld	(0fe00h),hl
+	ld	a,0feh
+	ld	i,a
+	im	2
+	ld	bc,01fa0h
+	xor	a
+	out	(c),a
+	ld	a,0a5h
+	out	(c),a
+	ld	a,01ah
+	out	(c),a
+skip:
+	ld	bc,00001h
+	ld	a,0ffh
+	out	(c),a
+	ei
+	jp	main
+stop:
+	ld	bc,01fa0h
+	ld	a,003h
+	out	(c),a
+	ld	hl,00000h
+	ld	(05362h),hl
+	ld	(05360h),hl
+	call	05366h
+	ld	hl,00000h
+stop_loop:
+	push	hl
+	call	057f0h
+	pop	hl
+	inc	l
+	ld	a,l
+	cp	006h
+	jr	nz,stop_loop
+	ret
+
+irq:
+	push	af
+	push	bc
+	push	de
+	push	hl
+	call	055e8h
+	pop	hl
+	pop	de
+	pop	bc
+	pop	af
+	ei
+	reti

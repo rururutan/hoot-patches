@@ -1,0 +1,22 @@
+mkdir MUS
+d88cut oujibin.d88 .\MUS\driver.bin 0 0x38b1 0x316 0 0x316
+d88cut oujibin.d88 .\MUS\control.bin 0 0x46bd 0x2a6 0 0x2a6
+d88cut oujibin.d88 .\MUS\calc.bin 0 0x4e66 0xf4 0 0xf4
+d88cut oujibin.d88 .\MUS\voices.bin 0 0xb800 0x100 0 0x100
+d88cut oujibin.d88 .\MUS\bgm_00.bin 0 0x1000 0x9d4 0 0x9d4
+d88cut oujibin.d88 .\MUS\bgm_01.bin 0 0x27000 0x682 0 0x682
+d88cut oujibin.d88 .\MUS\bgm_02.bin 0 0xc800 0x2f6 0 0x2f6
+d88cut oujibin.d88 .\MUS\bgm_03.bin 0 0xcb00 0x290 0 0x290
+d88cut oujibin.d88 .\MUS\bgm_04.bin 0 0xce00 0x224 0 0x224
+d88cut oujibin.d88 .\MUS\bgm_05.bin 0 0xd100 0x123 0 0x123
+d88cut oujibin.d88 .\MUS\bgm_06.bin 0 0xd300 0x49 0 0x49
+d88cut oujibin.d88 .\MUS\bgm_07.bin 0 0xda00 0xb8 0 0xb8
+d88cut oujibin.d88 .\MUS\bgm_08.bin 0 0xde00 0x127 0 0x127
+d88cut oujibin.d88 .\MUS\bgm_09.bin 0 0xdb00 0xdb 0 0xdb
+d88cut oujibin.d88 .\MUS\bgm_0A.bin 0 0xd400 0x212 0 0x212
+d88cut oujibin.d88 .\MUS\bgm_0B.bin 0 0x27700 0x4f 0 0x4f
+d88cut oujibin.d88 .\MUS\bgm_0C.bin 0 0xd700 0x2 0 0x2
+d88cut oujibin.d88 .\MUS\bgm_0D.bin 0 0x1a00 0x273 0 0x273
+d88cut oujibin.d88 .\MUS\bgm_0E.bin 0 0xdc00 0x1e2 0 0x1e2
+d88cut oujibin.d88 .\MUS\bgm_0F.bin 0 0xd800 0x173 0 0x173
+d88cut oujibin.d88 .\MUS\bgm_10.bin 0 0x27800 0x73 0 0x73
