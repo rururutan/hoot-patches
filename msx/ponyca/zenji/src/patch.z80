@@ -1,0 +1,112 @@
+; Zenji (c)Ponyca
+;
+; @autor RuRuRu
+; @date 2026/11/04 1st Release
+;
+
+	cseg
+	org 0c000h
+
+main:
+	di
+	im 1
+	ld sp,0f300h
+	ld a,0d5h
+	out (0a8h),a
+	call reset
+	ei
+loop:
+	in a,(02h)
+	or a
+	jr z,loop
+	cp 1
+	jr nz,stop
+
+	in a,(03h)
+	cp 20
+	jr nc,stop
+
+	di
+	push af
+	call reset
+	pop af
+	cp 19
+	jr z,bgm
+	or a
+	jr nz,single
+
+	ld b,1
+	call 006ch
+	ld b,2
+	jr start
+
+single:
+	ld b,a
+
+start:
+	call 006ch
+	jr started
+
+bgm:
+	ld a,2
+	ld (0e01dh),a
+	ld a,010h
+	ld (0e192h),a
+
+started:
+	ei
+	jr ack
+
+stop:
+	di
+	call reset
+	ei
+ack:
+	xor a
+	out (02h),a
+	jp loop
+
+reset:
+	xor a
+	ld hl,0e000h
+	ld de,0e001h
+	ld bc,03ffh
+	ld (hl),a
+	ldir
+	ld hl,irq
+	ld (0e000h),hl
+	call 0368h
+	call 01ba6h
+	call 01bb5h
+	ld a,1
+	ld (0e01ah),a
+	ret
+
+; ROM 0038->07A1 has already saved AF and HL.
+irq:
+	push bc
+	push de
+	push ix
+	push iy
+	ex af,af'
+	exx
+	push af
+	push bc
+	push de
+	push hl
+	call 01be2h
+	call 08b6h
+	pop hl
+	pop de
+	pop bc
+	pop af
+	exx
+	ex af,af'
+	pop iy
+	pop ix
+	pop de
+	pop bc
+	pop hl
+	pop af
+	ei
+	reti
