@@ -1,0 +1,17 @@
+mkdir MUS
+d88cut byakuya.d88 .\MUS\driver.bin 0 0x5B5A 0x7DD 0 0x7DD
+d88cut byakuya.d88 .\MUS\calc.bin 0 0x6A22 0x103 0 0x103
+d88cut byakuya.d88 .\MUS\voices.bin 0 0x14000 0x100 0 0x100
+d88cut byakuya.d88 .\MUS\bgm_00.bin 0 0x14100 0x8EB 0 0x8EB
+d88cut byakuya.d88 .\MUS\bgm_01.bin 0 0x14B00 0x75 0 0x75
+d88cut byakuya.d88 .\MUS\bgm_02.bin 0 0x14D00 0x1B4 0 0x1B4
+d88cut byakuya.d88 .\MUS\bgm_03.bin 0 0x15000 0x237 0 0x237
+d88cut byakuya.d88 .\MUS\bgm_04.bin 0 0x15400 0x4D 0 0x4D
+d88cut byakuya.d88 .\MUS\bgm_05.bin 0 0x15600 0x6D 0 0x6D
+d88cut byakuya.d88 .\MUS\bgm_06.bin 0 0x15700 0xF8 0 0xF8
+d88cut byakuya.d88 .\MUS\bgm_07.bin 0 0x15900 0x165 0 0x165
+d88cut byakuya.d88 .\MUS\bgm_08.bin 0 0x15C00 0x205 0 0x205
+d88cut byakuya.d88 .\MUS\bgm_09.bin 0 0x16000 0x1D6 0 0x1D6
+d88cut byakuya.d88 .\MUS\bgm_0A.bin 0 0x16300 0x634 0 0x634
+d88cut byakuya.d88 .\MUS\bgm_0B.bin 0 0x16B00 0x362 0 0x362
+d88cut byakuya.d88 .\MUS\bgm_0C.bin 0 0x17000 0xD81 0 0xD81

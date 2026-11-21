@@ -1,0 +1,83 @@
+; 王子ビンビン物語 for X1turbo (c)East Cube
+; メインルーチン
+
+	org	05000h
+	di
+	ld	sp,0fd00h
+	ld	hl,01fa0h
+	ld	(0fc02h),hl
+	call	stop
+main:
+	ld	bc,00000h
+	in	a,(c)
+	or	a
+	jr	z,main
+	di
+	push	af
+	call	stop
+	pop	af
+	cp	001h
+	jr	nz,skip
+	ld	bc,00001h
+	in	a,(c)
+	cp	011h
+	jr	nc,skip
+	out	(c),a
+	push	af
+	ld	hl,08000h
+	call	02954h
+	pop	af
+
+	call	set_loop_flg
+	ld	hl,08000h
+	call	02b3dh
+skip:
+	ld	bc,00001h
+	ld	a,0ffh
+	out	(c),a
+	ei
+	jr	main
+stop:
+	call	02997h
+	ld	hl,00000h
+	ld	(02865h),hl
+	ld	(03fc0h),hl
+stop_loop:
+	push	hl
+	call	02badh
+	pop	hl
+	inc	l
+	ld	a,l
+	cp	006h
+	jr	c,stop_loop
+	ld	a,0ffh
+	ld	(02a57h),a
+	ld	(02a58h),a
+	ld	(02a59h),a
+	ret
+
+
+set_loop_flg:
+	cp	001h
+	jr	z,no_loop
+	cp	006h
+	jr	z,no_loop
+	cp	007h
+	jr	z,no_loop
+	cp	008h
+	jr	z,no_loop
+	cp	00ah
+	jr	z,no_loop
+	cp	00bh
+	jr	z,no_loop
+	cp	00ch
+	jr	z,no_loop
+	cp	00fh
+	jr	z,no_loop
+	cp	010h
+	jr	z,no_loop
+	ret
+no_loop:
+	ld	hl,00000h
+	ld	(02863h),hl
+	ret
