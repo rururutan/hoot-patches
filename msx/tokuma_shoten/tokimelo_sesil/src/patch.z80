@@ -3,6 +3,7 @@
 ;
 ; @autor RuRuRu
 ; @date 2024/05/18 1st Release
+; @date 2026/11/02 Fix calslt
 ;
 
 	cseg
@@ -115,7 +116,8 @@ init:
 	ld	(008BEh), a
 	ld	(irq),a
 
-	call	08A0h
+	ld	(0001Ch), a	; 初期化後に独自のCALSLTを設定する
+	call	08A0h   ; 初期化
 
 	ld	a, 0C3h
 	ld	(0001Ch), a

@@ -1,11 +1,14 @@
-; ‚Ø‚ñ‚¬‚ñ‚­‚ñƒEƒH[ƒY2 (c)ASCI —p
-; ƒƒCƒ“ƒ‹[ƒ`ƒ“
+; ãºã‚“ãã‚“ãã‚“ã‚¦ã‚©ãƒ¼ã‚º2 (c)ASCI
+;
+; @author RuRuRu
+; @date 2011/06/08 1st Release
+; @date 2026/11/02 Fix slot mapping
 
 	cseg
 	org	0400h
-stack:	equ	0f100h		; ƒXƒ^ƒbƒNƒGƒŠƒA
+stack:	equ	0f100h		; ã‚¹ã‚¿ãƒƒã‚¯ã‚¨ãƒªã‚¢
 
-; ƒƒCƒ“ƒ‹[ƒv
+; ãƒ¡ã‚¤ãƒ³ãƒ«ãƒ¼ãƒ—
 main:
 	di
 	im	1
@@ -15,7 +18,7 @@ main:
 
 loop:
 
-	in	a,(02h)		; ƒL[“ü—Í‘Ò‚¿
+	in	a,(02h)		; ã‚­ãƒ¼å…¥åŠ›å¾…ã¡
 	or	a
 	jr	z,loop
 
@@ -49,7 +52,7 @@ init:
 ;	ld	(0014h), a
 	ld	(0024h), a
 
-	; ‚Ü‚¸8000~BFFF‚ğRAM‚É‚µ‚È‚¢‚ÆBxxx‚É‘‚¯‚È‚¢
+	; ã¾ãš8000~BFFFã‚’RAMã«ã—ãªã„ã¨Bxxxã«æ›¸ã‘ãªã„
 	ld	a, 0F7h		; m-slot : ram/rom/ram/ram
 	out	(0A8h),a
 
@@ -71,7 +74,7 @@ init:
 
 ; opll bios
 	; subslot setting (opll)
-	ld	a, 013h		; m-slot : ram/rom/rom/bios
+	ld	a, 033h		; m-slot : ram/ram/rom/bios
 	out	(0A8h),a
 	ld	a, 04h
 	ld	(0FFFFh),a	; s-slot : bios/fm/none/none
